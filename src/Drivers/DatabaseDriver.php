@@ -33,6 +33,7 @@ class DatabaseDriver implements StorageDriverContract
             $data['metadata'] = json_encode($data['metadata']);
             $data['response_headers'] = json_encode($data['response_headers']);
             $data['response_body'] = json_encode($data['response_body']);
+            $data['timestamp'] = $requestData->timestamp;
 
             $this->getConnection()->table($this->getTableName())->insert($data);
 
