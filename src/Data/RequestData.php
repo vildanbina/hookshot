@@ -97,6 +97,28 @@ class RequestData
         );
     }
 
+    public function withUserId(?int $userId): self
+    {
+        return new self(
+            $this->id,
+            $this->method,
+            $this->url,
+            $this->path,
+            $this->headers,
+            $this->query,
+            $this->payload,
+            $this->ip,
+            $this->userAgent,
+            $userId,
+            $this->metadata,
+            $this->timestamp,
+            $this->executionTime,
+            $this->responseStatus,
+            $this->responseHeaders,
+            $this->responseBody
+        );
+    }
+
     public function toArray(): array
     {
         return [

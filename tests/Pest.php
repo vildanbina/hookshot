@@ -62,3 +62,48 @@ function mockRequest(array $overrides = []): Illuminate\Http\Request
 
     return $request;
 }
+
+function createTestUser(int $id = 123, string $name = 'Test User'): Illuminate\Contracts\Auth\Authenticatable
+{
+    return new class($id, $name) implements Illuminate\Contracts\Auth\Authenticatable
+    {
+        public function __construct(public int $id, public string $name) {}
+
+        public function getAuthIdentifierName(): string
+        {
+            return 'id';
+        }
+
+        public function getAuthIdentifier(): mixed
+        {
+            return $this->id;
+        }
+
+        public function getAuthPassword(): string
+        {
+            return '';
+        }
+
+        public function getAuthPasswordName(): string
+        {
+            return 'password';
+        }
+
+        public function getRememberToken(): ?string
+        {
+            return null;
+        }
+
+        public function setRememberToken($value): void {}
+
+        public function getRememberTokenName(): string
+        {
+            return '';
+        }
+
+        public function getKey()
+        {
+            return $this->id;
+        }
+    };
+}

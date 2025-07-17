@@ -58,6 +58,11 @@ class TrackRequestsMiddleware
 
         $executionTime = microtime(true) - $startTime;
 
+        // Update user ID if it wasn't captured during handle() (when auth wasn't available yet)
+        if ($requestData->userId === null && $request->user()) {
+            $requestData = $requestData->withUserId($request->user()->getKey());
+        }
+
         $finalRequestData = $requestData->withResponse(
             status: $response->getStatusCode(),
             headers: $this->responseCapture->getHeaders($response),

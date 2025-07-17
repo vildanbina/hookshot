@@ -86,49 +86,7 @@ it('captures file uploads', function () {
 });
 
 it('tracks authenticated user requests', function () {
-    $user = new class implements Illuminate\Contracts\Auth\Authenticatable
-    {
-        public $id = 456;
-
-        public $name = 'Test User';
-
-        public function getAuthIdentifierName(): string
-        {
-            return 'id';
-        }
-
-        public function getAuthIdentifier(): mixed
-        {
-            return $this->id;
-        }
-
-        public function getAuthPassword(): string
-        {
-            return '';
-        }
-
-        public function getAuthPasswordName(): string
-        {
-            return 'password';
-        }
-
-        public function getRememberToken(): ?string
-        {
-            return null;
-        }
-
-        public function setRememberToken($value): void {}
-
-        public function getRememberTokenName(): string
-        {
-            return '';
-        }
-
-        public function getKey()
-        {
-            return $this->id;
-        }
-    };
+    $user = createTestUser(456, 'Test User');
 
     $this->actingAs($user)->postJson('/api/users', ['name' => 'John']);
 
@@ -148,4 +106,20 @@ it('captures response data', function () {
         ->and($request->responseBody)->toBe(['id' => 123, 'name' => 'John'])
         ->and($request->executionTime)->toBeFloat()
         ->and($request->executionTime)->toBeGreaterThan(0);
+});
+
+it('tracks authenticated user with auto_track enabled', function () {
+    // Ensure auto_track is enabled
+    config(['request-tracker.auto_track' => true]);
+
+    $user = createTestUser(789, 'Auto Track User');
+
+    $this->actingAs($user)->postJson('/api/users', ['name' => 'John']);
+
+    $requests = RequestTracker::get();
+    $request = $requests->first();
+
+    expect($request->userId)->toBe(789)
+        ->and($request->method)->toBe('POST')
+        ->and($request->path)->toBe('api/users');
 });

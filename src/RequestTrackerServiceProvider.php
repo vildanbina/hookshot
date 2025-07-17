@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace VildanBina\HookShot;
 
-use Illuminate\Routing\Router;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use VildanBina\HookShot\Console\Commands\CleanupCommand;
 use VildanBina\HookShot\Contracts\RequestTrackerContract;
@@ -19,7 +19,7 @@ class RequestTrackerServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/request-tracker.php',
+            __DIR__.'/../config/request-tracker.php',
             'request-tracker'
         );
 
@@ -42,15 +42,15 @@ class RequestTrackerServiceProvider extends ServiceProvider
 
         // Console-only features
         if ($this->app->runningInConsole()) {
-            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+            $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
             $this->commands([CleanupCommand::class]);
 
             $this->publishes([
-                __DIR__ . '/../config/request-tracker.php' => config_path('request-tracker.php'),
+                __DIR__.'/../config/request-tracker.php' => config_path('request-tracker.php'),
             ], 'request-tracker-config');
 
             $this->publishes([
-                __DIR__ . '/../database/migrations' => database_path('migrations'),
+                __DIR__.'/../database/migrations' => database_path('migrations'),
             ], 'request-tracker-migrations');
         }
     }
