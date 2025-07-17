@@ -19,7 +19,7 @@ it('creates request data from array', function () {
 
 it('creates request data from HTTP request', function () {
     $request = mockRequest();
-    $extractor = new DataExtractor(config('request-tracker'));
+    $extractor = new DataExtractor(config('hookshot'));
 
     $requestData = RequestData::fromRequest($request, $extractor);
 

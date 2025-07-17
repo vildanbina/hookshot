@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('request_tracker_logs', function (Blueprint $table) {
+        Schema::create('hookshot_logs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('method', 10);
             $table->text('url');
@@ -42,6 +42,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('request_tracker_logs');
+        Schema::dropIfExists('hookshot_logs');
     }
 };

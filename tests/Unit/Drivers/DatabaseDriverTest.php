@@ -8,10 +8,10 @@ use VildanBina\HookShot\Drivers\DatabaseDriver;
 
 beforeEach(function () {
     // Clean database before each test
-    DB::table('request_tracker_logs')->truncate();
+    DB::table('hookshot_logs')->truncate();
 
     $this->driver = new DatabaseDriver(app('db'), [
-        'table' => 'request_tracker_logs',
+        'table' => 'hookshot_logs',
         'retention_days' => 30,
     ]);
 });
@@ -24,7 +24,7 @@ it('stores request data in database', function () {
 
     expect($result)->toBeTrue();
 
-    $record = DB::table('request_tracker_logs')->where('id', $data['id'])->first();
+    $record = DB::table('hookshot_logs')->where('id', $data['id'])->first();
     expect($record)->not->toBeNull()
         ->and($record->method)->toBe('POST')
         ->and($record->url)->toBe('https://app.test/api/users')
@@ -58,7 +58,7 @@ it('gets multiple requests with limit', function () {
         $this->driver->store($requestData);
     }
 
-    $requests = $this->driver->get([], 3);
+    $requests = $this->driver->get(3);
 
     expect($requests)->toHaveCount(3)
         ->and($requests->first())->toBeInstanceOf(RequestData::class);
@@ -73,7 +73,7 @@ it('deletes request data', function () {
 
     expect($result)->toBeTrue();
 
-    $record = DB::table('request_tracker_logs')->where('id', $data['id'])->first();
+    $record = DB::table('hookshot_logs')->where('id', $data['id'])->first();
     expect($record)->toBeNull();
 });
 

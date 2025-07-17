@@ -23,11 +23,9 @@ interface RequestTrackerContract
     public function find(string $id): ?RequestData;
 
     /**
-     * Retrieve multiple requests with optional filtering.
-     *
-     * @param  array<string, mixed>  $filters
+     * Retrieve multiple requests with basic ordering and limit.
      */
-    public function get(array $filters = [], int $limit = 100): Collection;
+    public function get(int $limit = 100): Collection;
 
     /**
      * Delete request data by ID.

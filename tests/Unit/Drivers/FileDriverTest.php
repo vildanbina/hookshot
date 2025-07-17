@@ -101,7 +101,7 @@ it('gets multiple requests from files', function () {
         $this->driver->store($requestData);
     }
 
-    $requests = $this->driver->get([], 10);
+    $requests = $this->driver->get(10);
 
     expect($requests)->toHaveCount(3)
         ->and($requests->first())->toBeInstanceOf(RequestData::class);

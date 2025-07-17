@@ -8,8 +8,8 @@ use VildanBina\HookShot\Events\RequestCaptured;
 use VildanBina\HookShot\Facades\RequestTracker;
 
 beforeEach(function () {
-    Route::post('/api/users', fn () => response()->json(['id' => 123, 'name' => 'John']))->name('users.store');
-    Route::get('/health-check', fn () => 'OK');
+    Route::post('/api/users', fn () => response()->json(['id' => 123, 'name' => 'John']))->name('users.store')->middleware('track-requests');
+    Route::get('/health-check', fn () => 'OK')->middleware('track-requests');
 });
 
 it('tracks HTTP requests automatically', function () {
@@ -69,7 +69,7 @@ it('handles errors gracefully', function () {
 });
 
 it('captures file uploads', function () {
-    Route::post('/upload', fn () => response()->json(['uploaded' => true]));
+    Route::post('/upload', fn () => response()->json(['uploaded' => true]))->middleware('track-requests');
 
     $file = Illuminate\Http\UploadedFile::fake()->create('document.pdf', 100);
 
@@ -106,20 +106,4 @@ it('captures response data', function () {
         ->and($request->responseBody)->toBe(['id' => 123, 'name' => 'John'])
         ->and($request->executionTime)->toBeFloat()
         ->and($request->executionTime)->toBeGreaterThan(0);
-});
-
-it('tracks authenticated user with auto_track enabled', function () {
-    // Ensure auto_track is enabled
-    config(['request-tracker.auto_track' => true]);
-
-    $user = createTestUser(789, 'Auto Track User');
-
-    $this->actingAs($user)->postJson('/api/users', ['name' => 'John']);
-
-    $requests = RequestTracker::get();
-    $request = $requests->first();
-
-    expect($request->userId)->toBe(789)
-        ->and($request->method)->toBe('POST')
-        ->and($request->path)->toBe('api/users');
 });

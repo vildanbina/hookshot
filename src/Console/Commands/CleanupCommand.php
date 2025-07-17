@@ -7,7 +7,6 @@ namespace VildanBina\HookShot\Console\Commands;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository as Config;
-use InvalidArgumentException;
 use VildanBina\HookShot\Contracts\RequestTrackerContract;
 
 /**
@@ -16,14 +15,14 @@ use VildanBina\HookShot\Contracts\RequestTrackerContract;
 class CleanupCommand extends Command
 {
     /**
-     * The name and signature of the console command.
+     * The command signature.
      */
-    protected $signature = 'request-tracker:cleanup
-                           {--driver= : Specific driver to cleanup (default: configured default driver)}
-                           {--dry-run : Show what would be deleted without actually deleting}';
+    protected $signature = 'hookshot:cleanup
+                            {--driver= : Specify storage driver to clean up}
+                            {--dry-run : Show what would be deleted without actually deleting}';
 
     /**
-     * The console command description.
+     * The command description.
      */
     protected $description = 'Clean up old request tracking data based on retention policy';
 
@@ -52,16 +51,14 @@ class CleanupCommand extends Command
         }
 
         try {
-            if ($driver) {
-                $deleted = $this->cleanupSpecificDriver($driver, $dryRun);
-            } else {
-                $deleted = $this->cleanupDefaultDriver($dryRun);
-            }
+            $availableDrivers = $this->getAvailableDrivers();
+            $driverToCleanup = $this->getDriverToCleanup($driver, $availableDrivers);
 
             if ($dryRun) {
-                $this->info("Would delete {$deleted} old request records");
+                $this->info('Would delete 0 old request records');
             } else {
-                $this->info("Successfully deleted {$deleted} old request records");
+                $count = $this->requestTracker->driver($driverToCleanup)->cleanup();
+                $this->line("Successfully deleted {$count} old request records");
             }
 
             return Command::SUCCESS;
@@ -73,37 +70,43 @@ class CleanupCommand extends Command
     }
 
     /**
-     * Clean up using a specific storage driver.
+     * Get all available drivers from configuration.
+     *
+     * @return array<string>
+     *
+     * @throws Exception
      */
-    private function cleanupSpecificDriver(string $driver, bool $dryRun): int
+    private function getAvailableDrivers(): array
     {
-        $availableDrivers = array_keys($this->config->get('request-tracker.drivers', []));
+        /** @var array<string> $availableDrivers */
+        $availableDrivers = array_keys($this->config->get('hookshot.drivers', []));
 
-        if (! in_array($driver, $availableDrivers)) {
-            throw new InvalidArgumentException("Driver '{$driver}' is not configured");
+        if (empty($availableDrivers)) {
+            throw new Exception('No storage drivers configured.');
         }
 
-        $this->info("Using driver: {$driver}");
-
-        if ($dryRun) {
-            return 0;
-        }
-
-        return $this->requestTracker->driver($driver)->cleanup();
+        return $availableDrivers;
     }
 
     /**
-     * Clean up using the default configured driver.
+     * Get the default driver or validate the provided driver.
      */
-    private function cleanupDefaultDriver(bool $dryRun): int
+    private function getDriverToCleanup(?string $driverOption, array $availableDrivers): string
     {
-        $defaultDriver = $this->config->get('request-tracker.default', 'database');
-        $this->info("Using default driver: {$defaultDriver}");
+        if ($driverOption) {
+            if (! in_array($driverOption, $availableDrivers)) {
+                throw new Exception("Driver '{$driverOption}' is not configured.");
+            }
 
-        if ($dryRun) {
-            return 0;
+            return $driverOption;
         }
 
-        return $this->requestTracker->cleanup();
+        $defaultDriver = $this->config->get('hookshot.default', 'database');
+
+        if (! in_array($defaultDriver, $availableDrivers)) {
+            throw new Exception("Default driver '{$defaultDriver}' is not configured.");
+        }
+
+        return $defaultDriver;
     }
 }

@@ -72,9 +72,10 @@ class CacheDriver implements StorageDriverContract
     }
 
     /**
-     * Get multiple requests with basic ordering and limit.
+     * Get collection of all cached requests.
+     * Users can chain additional collection methods for filtering.
      */
-    public function get(array $filters = [], int $limit = 100): Collection
+    public function collection(): Collection
     {
         try {
             $indexKey = $this->getIndexKey();
@@ -83,8 +84,8 @@ class CacheDriver implements StorageDriverContract
 
             return collect($index)
                 ->sortByDesc('timestamp')
-                ->take($limit)
-                ->map(fn ($item) => $this->find($item['id']))->filter();
+                ->map(fn ($item) => $this->find($item['id']))
+                ->filter();
         } catch (Exception $e) {
             logger()->error('Failed to get request data from cache', [
                 'exception' => $e->getMessage(),
@@ -92,6 +93,14 @@ class CacheDriver implements StorageDriverContract
 
             return collect();
         }
+    }
+
+    /**
+     * Get multiple requests with basic ordering and limit.
+     */
+    public function get(int $limit = 100): Collection
+    {
+        return $this->collection()->take($limit);
     }
 
     /**
@@ -160,8 +169,8 @@ class CacheDriver implements StorageDriverContract
     public function isAvailable(): bool
     {
         try {
-            $this->getStore()->put('request_tracker_test', 'test', 1);
-            $this->getStore()->forget('request_tracker_test');
+            $this->getStore()->put('hookshot_test', 'test', 1);
+            $this->getStore()->forget('hookshot_test');
 
             return true;
         } catch (Exception) {
@@ -180,21 +189,21 @@ class CacheDriver implements StorageDriverContract
     }
 
     /**
-     * Get cache key for request data.
+     * Generate cache key for individual request.
      */
     private function getKey(string $id): string
     {
-        $prefix = $this->config['prefix'] ?? 'request_tracker';
+        $prefix = $this->config['prefix'] ?? 'hookshot';
 
         return "{$prefix}:request:{$id}";
     }
 
     /**
-     * Get cache key for index.
+     * Generate cache key for index.
      */
     private function getIndexKey(): string
     {
-        $prefix = $this->config['prefix'] ?? 'request_tracker';
+        $prefix = $this->config['prefix'] ?? 'hookshot';
 
         return "{$prefix}:index";
     }

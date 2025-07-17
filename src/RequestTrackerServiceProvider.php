@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace VildanBina\HookShot;
 
-use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use VildanBina\HookShot\Console\Commands\CleanupCommand;
@@ -19,15 +18,15 @@ class RequestTrackerServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../config/request-tracker.php',
-            'request-tracker'
+            __DIR__.'/../config/hookshot.php',
+            'hookshot'
         );
 
         $this->app->singleton(RequestTrackerContract::class, function ($app) {
             return new RequestTrackerManager($app);
         });
 
-        $this->app->alias(RequestTrackerContract::class, 'request-tracker');
+        $this->app->alias(RequestTrackerContract::class, 'hookshot');
     }
 
     /**
@@ -37,21 +36,17 @@ class RequestTrackerServiceProvider extends ServiceProvider
     {
         $router->middlewareGroup('track-requests', [TrackRequestsMiddleware::class]);
 
-        if (config('request-tracker.auto_track', true)) {
-            $this->app->make(Kernel::class)->pushMiddleware(TrackRequestsMiddleware::class);
-        }
-
         if ($this->app->runningInConsole()) {
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
             $this->commands([CleanupCommand::class]);
 
             $this->publishes([
-                __DIR__.'/../config/request-tracker.php' => config_path('request-tracker.php'),
-            ], 'request-tracker-config');
+                __DIR__.'/../config/hookshot.php' => config_path('hookshot.php'),
+            ], 'hookshot-config');
 
             $this->publishes([
                 __DIR__.'/../database/migrations' => database_path('migrations'),
-            ], 'request-tracker-migrations');
+            ], 'hookshot-migrations');
         }
     }
 
@@ -64,7 +59,7 @@ class RequestTrackerServiceProvider extends ServiceProvider
     {
         return [
             RequestTrackerContract::class,
-            'request-tracker',
+            'hookshot',
         ];
     }
 }

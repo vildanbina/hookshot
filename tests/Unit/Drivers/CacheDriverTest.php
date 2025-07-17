@@ -55,7 +55,7 @@ it('maintains index for listing requests', function () {
     $this->driver->store($request1);
     $this->driver->store($request2);
 
-    $requests = $this->driver->get([], 10);
+    $requests = $this->driver->get(10);
 
     expect($requests)->toHaveCount(2)
         ->and($requests->pluck('id')->toArray())->toContain('request-1', 'request-2');
@@ -68,7 +68,7 @@ it('respects limit when getting requests', function () {
         $this->driver->store($requestData);
     }
 
-    $requests = $this->driver->get([], 3);
+    $requests = $this->driver->get(3);
 
     expect($requests)->toHaveCount(3);
 });

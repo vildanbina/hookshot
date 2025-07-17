@@ -23,11 +23,9 @@ interface StorageDriverContract
     public function find(string $id): ?RequestData;
 
     /**
-     * Get multiple requests with optional filtering.
-     *
-     * @param  array<string, mixed>  $filters
+     * Get multiple requests with basic ordering and limit.
      */
-    public function get(array $filters = [], int $limit = 100): Collection;
+    public function get(int $limit = 100): Collection;
 
     /**
      * Delete request data by ID.

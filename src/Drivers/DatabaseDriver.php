@@ -7,6 +7,7 @@ namespace VildanBina\HookShot\Drivers;
 use Exception;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use VildanBina\HookShot\Contracts\StorageDriverContract;
@@ -68,19 +69,24 @@ class DatabaseDriver implements StorageDriverContract
     }
 
     /**
-     * Get multiple requests with basic ordering and limit.
-     *
-     * @param  array<string, mixed>  $filters
+     * Get query builder for requests table.
+     * Users can chain additional conditions, ordering, etc.
      */
-    public function get(array $filters = [], int $limit = 100): Collection
+    public function query(): Builder
     {
-        $records = $this->getConnection()
-            ->table($this->getTableName())
+        return $this->getConnection()->table($this->getTableName());
+    }
+
+    /**
+     * Get multiple requests with basic ordering and limit.
+     */
+    public function get(int $limit = 100): Collection
+    {
+        return $this->query()
             ->orderBy('timestamp', 'desc')
             ->limit($limit)
-            ->get();
-
-        return $records->map(fn ($record) => $this->mapToRequestData((array) $record));
+            ->get()
+            ->map(fn ($record) => $this->mapToRequestData((array) $record));
     }
 
     /**
@@ -157,7 +163,7 @@ class DatabaseDriver implements StorageDriverContract
      */
     private function getTableName(): string
     {
-        return $this->config['table'] ?? 'request_tracker_logs';
+        return $this->config['table'];
     }
 
     /**

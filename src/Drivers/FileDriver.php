@@ -27,7 +27,7 @@ class FileDriver implements StorageDriverContract
      */
     public function __construct(private readonly array $config = [])
     {
-        $this->storagePath = $this->config['path'] ?? storage_path('app/request-tracker');
+        $this->storagePath = $this->config['path'] ?? storage_path('app/hookshot');
         $this->format = $this->config['format'] ?? 'json'; // json or raw
         $this->retentionDays = $this->config['retention_days'] ?? 30;
 
@@ -76,21 +76,29 @@ class FileDriver implements StorageDriverContract
         }
     }
 
-    public function get(array $filters = [], int $limit = 100): Collection
+    /**
+     * Get collection of all file-based requests.
+     * Users can chain additional collection methods for filtering.
+     */
+    public function collection(): Collection
     {
         $results = collect();
         $directories = $this->getDirectories();
 
         foreach ($directories as $directory) {
-            if ($results->count() >= $limit) {
-                break;
-            }
-
-            $dirResults = $this->searchDirectory($directory, $limit - $results->count());
+            $dirResults = $this->searchDirectory($directory, PHP_INT_MAX);
             $results = $results->merge($dirResults);
         }
 
-        return $results->take($limit);
+        return $results;
+    }
+
+    /**
+     * Get multiple requests with basic ordering and limit.
+     */
+    public function get(int $limit = 100): Collection
+    {
+        return $this->collection()->take($limit);
     }
 
     public function delete(string $id): bool

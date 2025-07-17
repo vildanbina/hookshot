@@ -1,145 +1,113 @@
 # HookShot
 
-**A powerful Laravel package for comprehensive HTTP request tracking and analytics.**
+[![Latest Stable Version](https://poser.pugx.org/vildanbina/hookshot/v/stable)](https://packagist.org/packages/vildanbina/hookshot)
+[![Total Downloads](https://poser.pugx.org/vildanbina/hookshot/downloads)](https://packagist.org/packages/vildanbina/hookshot)
+[![License](https://poser.pugx.org/vildanbina/hookshot/license)](https://packagist.org/packages/vildanbina/hookshot)
+[![PHP Version Require](https://poser.pugx.org/vildanbina/hookshot/require/php)](https://packagist.org/packages/vildanbina/hookshot)
 
-HookShot automatically captures every incoming HTTP request to your Laravel application, storing detailed information for debugging, analytics, compliance, and monitoring purposes. With multiple storage drivers and extensive configuration options, it adapts to any use case from development debugging to enterprise compliance logging.
+A Laravel package for capturing and tracking HTTP requests with multiple storage drivers and powerful filtering capabilities.
 
-## Why HookShot?
+## Features
 
-- **🔍 Debug Issues** - Reproduce bugs by seeing exactly what requests caused them
-- **📊 Analytics** - Track API usage patterns, popular endpoints, and user behavior
-- **🛡️ Security** - Monitor suspicious requests and track authentication attempts
-- **📋 Compliance** - Meet audit requirements with comprehensive request logging
-- **⚡ Performance** - Identify slow endpoints and optimize request handling
-- **🔌 API Monitoring** - Track external API integrations and webhook deliveries
+- **Multiple Storage Drivers**: Database, Cache, and File storage options
+- **Smart Filtering**: Exclude paths, user agents, and apply sampling rates
+- **Performance Optimized**: Configurable payload limits and queueing support
+- **Laravel 11+ Compatible**: Modern Laravel applications support
+- **Event-Driven**: Capture and modify request data via events
+- **Security Focused**: Automatic filtering of sensitive headers and data
+
+## Requirements
+
+- PHP 8.2+
+- Laravel 10.x, 11.x, 12.x
 
 ## Installation
+
+Install the package via Composer:
 
 ```bash
 composer require vildanbina/hookshot
 ```
 
-The package will automatically register itself. Run migrations to set up database storage:
+Publish the configuration file:
+
+```bash
+php artisan vendor:publish --tag=hookshot-config
+```
+
+Run the migration for database storage:
 
 ```bash
 php artisan migrate
 ```
 
-## Quick Start
-
-HookShot starts tracking requests immediately after installation. View captured requests:
-
-```php
-use VildanBina\HookShot\Facades\RequestTracker;
-
-// Get recent requests
-$requests = RequestTracker::get();
-
-// Find specific request by ID
-$request = RequestTracker::find('550e8400-e29b-41d4-a716-446655440000');
-
-// Search requests
-$apiRequests = RequestTracker::get(['path' => 'api/*'], limit: 50);
-```
-
-## Storage Options
-
-### Database Storage (Default)
-
-Perfect for production environments requiring queryability and persistence.
-
-```php
-// config/request-tracker.php
-'drivers' => [
-    'database' => [
-        'connection' => 'mysql',           // Use specific DB connection
-        'table' => 'request_tracker_logs', // Custom table name
-        'retention_days' => 30,            // Auto-cleanup after 30 days
-    ],
-],
-```
-
-**Benefits:**
-
-- Full SQL querying capabilities
-- Indexed for fast searches by timestamp, user, status
-- Persistent storage with backup support
-- Great for analytics and reporting
-
-### Cache Storage
-
-Ideal for high-traffic applications needing fast access to recent requests.
-
-```php
-'drivers' => [
-    'cache' => [
-        'store' => 'redis',         // Use specific cache store
-        'prefix' => 'requests',     // Key prefix
-        'retention_days' => 7,      // TTL-based cleanup
-    ],
-],
-```
-
-**Benefits:**
-
-- Lightning-fast storage and retrieval
-- Automatic TTL-based cleanup
-- Memory-efficient for recent data
-- Perfect for debugging recent issues
-
-### File Storage
-
-Great for development, testing, or when you need human-readable request logs.
-
-```php
-'drivers' => [
-    'file' => [
-        'path' => storage_path('app/requests'),
-        'format' => 'json',  // 'json' or 'raw'
-        'retention_days' => 30,
-    ],
-],
-```
-
-**Benefits:**
-
-- Human-readable request dumps
-- No database required
-- Easy to share or archive
-- Organized by date: `2024-01-15/request-uuid.json`
-
-**Raw Format Example:**
-
-```
-Method: POST
-URL: https://app.com/api/users
-Path: api/users
-IP: 192.168.1.100
-User Agent: Mozilla/5.0...
-User ID: 12345
-
-Headers:
-  accept: application/json
-  authorization: [FILTERED]
-  content-type: application/json
-
-Payload:
-{
-  "name": "John Doe",
-  "email": "john@example.com"
-}
-```
-
 ## Configuration
 
-### Smart Filtering
-
-Exclude unnecessary requests to keep your logs clean:
+All configuration options with their purposes:
 
 ```php
-// config/request-tracker.php
+<?php
+
+declare(strict_types=1);
+
 return [
-    // Exclude health checks, admin tools, etc.
+    /*
+    |--------------------------------------------------------------------------
+    | HookShot Request Tracking
+    |--------------------------------------------------------------------------
+    |
+    | This file contains the configuration options for HookShot request tracking.
+    | You can enable/disable tracking, choose storage drivers, and configure
+    | filtering options to control what gets tracked.
+    |
+    */
+
+    // Enable or disable request tracking globally
+    'enabled' => env('HOOKSHOT_ENABLED', true),
+
+    // Default storage driver: 'database', 'cache', or 'file'
+    'default' => env('HOOKSHOT_DRIVER', 'database'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Storage Drivers
+    |--------------------------------------------------------------------------
+    |
+    | Configure how and where request data is stored. Each driver has its own
+    | settings for connection, retention, and other storage-specific options.
+    |
+    */
+    'drivers' => [
+        'database' => [
+            'connection' => env('HOOKSHOT_DB_CONNECTION'),
+            'table' => env('HOOKSHOT_TABLE', 'hookshot_logs'),
+            'retention_days' => 30,
+        ],
+
+        'cache' => [
+            'store' => env('HOOKSHOT_CACHE_STORE'),
+            'prefix' => 'hookshot',
+            'retention_days' => 7,
+        ],
+
+        'file' => [
+            'path' => storage_path('app/hookshot'),
+            'format' => 'json', // json or raw
+            'retention_days' => 30,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Exclusion Filters
+    |--------------------------------------------------------------------------
+    |
+    | Define which requests should be excluded from tracking to reduce noise
+    | and focus on meaningful application requests.
+    |
+    */
+
+    // Paths to exclude from tracking (health checks, admin panels, etc.)
     'excluded_paths' => [
         'health-check',
         'up',
@@ -147,10 +115,9 @@ return [
         'telescope/*',
         'horizon/*',
         'pulse/*',
-        'admin/logs/*',
     ],
 
-    // Exclude monitoring bots
+    // User agents to exclude (monitoring tools, bots, crawlers)
     'excluded_user_agents' => [
         'pingdom',
         'uptimerobot',
@@ -158,121 +125,81 @@ return [
         'bingbot',
     ],
 
-    // Performance optimization
-    'sampling_rate' => 0.1,  // Track only 10% of requests
+    /*
+    |--------------------------------------------------------------------------
+    | Performance Controls
+    |--------------------------------------------------------------------------
+    |
+    | Configure performance-related settings to manage resource usage and
+    | ensure tracking doesn't impact application performance.
+    |
+    */
+
+    // Percentage of requests to track (1.0 = 100%, 0.5 = 50%, etc.)
+    'sampling_rate' => env('HOOKSHOT_SAMPLING_RATE', 1.0),
+
+    // Maximum size of request payload to store (in bytes)
+    'max_payload_size' => 65536, // 64KB
+
+    // Maximum size of response body to store (in bytes)
+    'max_response_size' => 10240, // 10KB
+
+    // Queue request tracking for better performance
+    'use_queue' => env('HOOKSHOT_USE_QUEUE', false),
 ];
 ```
+ 
+## Usage
 
-### Performance Controls
+### Middleware Registration
 
-Optimize for your environment:
+**Manual Registration (Recommended)**
 
-```php
-return [
-    // Payload size limits
-    'max_payload_size' => 65536,   // 64KB - larger payloads truncated
-    'max_response_size' => 10240,  // 10KB - larger responses truncated
-
-    // Queue processing for high-traffic apps
-    'use_queue' => true,
-];
-```
-
-### Security & Privacy
-
-Sensitive data is automatically filtered:
+Apply to specific routes:
 
 ```php
-// These headers are automatically replaced with [FILTERED]
-'authorization', 'cookie', 'set-cookie', 'x-api-key', 'x-auth-token'
+Route::middleware('track-requests')->group(function () {
+    Route::get('/api/users', [UserController::class, 'index']);
+    Route::post('/api/users', [UserController::class, 'store']);
+});
 ```
 
-## Data Structure
+**Global Registration (Laravel 11+)**
 
-Each tracked request captures comprehensive information:
+Add to `bootstrap/app.php`:
 
 ```php
-[
-    'id' => '550e8400-e29b-41d4-a716-446655440000',
-    'method' => 'POST',
-    'url' => 'https://app.com/api/users',
-    'path' => 'api/users',
-    'headers' => [
-        'accept' => ['application/json'],
-        'authorization' => ['[FILTERED]'],
-        'user-agent' => ['PostmanRuntime/7.28.4'],
-    ],
-    'query' => ['page' => '1', 'limit' => '20'],
-    'payload' => ['name' => 'John', 'email' => 'john@example.com'],
-    'ip' => '192.168.1.100',
-    'user_agent' => 'PostmanRuntime/7.28.4',
-    'user_id' => 12345,
-    'metadata' => [
-        'route_name' => 'users.store',
-        'route_action' => 'UserController@store',
-        'session_id' => 'abc123...',
-        'referer' => 'https://app.com/dashboard',
-        'content_type' => 'application/json',
-    ],
-    'timestamp' => '2024-01-15T10:30:00Z',
-    'execution_time' => 0.245,  // seconds
-    'response_status' => 201,
-    'response_headers' => ['content-type' => ['application/json']],
-    'response_body' => ['id' => 67890, 'name' => 'John', 'created_at' => '...'],
-]
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->append(\VildanBina\HookShot\Middleware\TrackRequestsMiddleware::class);
+})
 ```
 
-## Querying Requests
-
-### Basic Retrieval
+### Retrieving Tracked Data
 
 ```php
 use VildanBina\HookShot\Facades\RequestTracker;
 
-// Get latest 100 requests
-$requests = RequestTracker::get();
+// Get all recent requests
+$requests = RequestTracker::get(50);
 
-// Get latest 50 requests
-$requests = RequestTracker::get([], 50);
+// Find specific request by ID
+$request = RequestTracker::find('uuid-here');
 
-// Find specific request
-$request = RequestTracker::find('550e8400-e29b-41d4-a716-446655440000');
+// Get requests with database driver (supports advanced queries)
+$slowRequests = RequestTracker::query()
+    ->where('execution_time', '>', 2.0)
+    ->where('response_status', '>=', 400)
+    ->get();
+
+// Filter by date range
+$todayRequests = RequestTracker::query()
+    ->whereDate('timestamp', today())
+    ->get();
 ```
 
-### Using Different Storage Drivers
+### Event Integration
 
-```php
-use VildanBina\HookShot\Contracts\RequestTrackerContract;
-
-$tracker = app(RequestTrackerContract::class);
-
-// Query cache storage
-$recentRequests = $tracker->driver('cache')->get();
-
-// Query file storage
-$fileRequests = $tracker->driver('file')->get();
-
-// Query specific database connection
-$dbRequests = $tracker->driver('database')->get();
-```
-
-### Manual Storage
-
-Store custom request data:
-
-```php
-use VildanBina\HookShot\Data\RequestData;
-use VildanBina\HookShot\Support\DataExtractor;
-
-$extractor = new DataExtractor(config('request-tracker'));
-$requestData = RequestData::fromRequest($request, $extractor);
-
-RequestTracker::store($requestData);
-```
-
-## Extending with Events
-
-Add custom data to any request using Laravel events:
+Listen to request capture events:
 
 ```php
 use VildanBina\HookShot\Events\RequestCaptured;
@@ -280,165 +207,79 @@ use Illuminate\Support\Facades\Event;
 
 Event::listen(RequestCaptured::class, function (RequestCaptured $event) {
     $request = $event->request;
-
-    // Add custom metadata during request execution
+    $requestData = $event->requestData;
+    
+    // Add custom metadata
     if ($request->user()) {
-        $request->attributes->set('user_tier', $request->user()->tier);
-        $request->attributes->set('subscription_active', $request->user()->subscribed());
-    }
-
-    // Add feature flags
-    $request->attributes->set('feature_flags', [
-        'new_checkout' => config('features.new_checkout'),
-        'beta_ui' => session('beta_ui_enabled'),
-    ]);
-
-    // Add business context
-    if ($request->routeIs('api.orders.*')) {
-        $request->attributes->set('order_value', $request->input('total'));
-        $request->attributes->set('payment_method', $request->input('payment.method'));
+        $event->request->attributes->set('user_type', 'premium');
     }
 });
 ```
 
-Register the listener in your `EventServiceProvider`:
-
-```php
-protected $listen = [
-    \VildanBina\HookShot\Events\RequestCaptured::class => [
-        \App\Listeners\AddCustomRequestData::class,
-    ],
-];
-```
-
-## Management Commands
+## Commands
 
 ### Cleanup Old Data
 
+Remove old tracking data based on retention settings:
+
 ```bash
-# Clean up all drivers based on retention_days config
-php artisan request-tracker:cleanup
+# Clean using default settings
+php artisan hookshot:cleanup
 
 # Clean specific driver
-php artisan request-tracker:cleanup --driver=database
+php artisan hookshot:cleanup --driver=database
 
-# See what would be deleted without actually deleting
-php artisan request-tracker:cleanup --dry-run
+# Dry run to see what would be deleted
+php artisan hookshot:cleanup --dry-run
 ```
 
-### Publishing Configuration
+## Storage Drivers
 
-```bash
-# Publish config file for customization
-php artisan vendor:publish --tag=request-tracker-config
+### Database Driver
+- Best for queryable, persistent data
+- Supports complex filtering and relationships
+- Automatic cleanup via retention settings
 
-# Publish migrations for customization
-php artisan vendor:publish --tag=request-tracker-migrations
-```
+### Cache Driver  
+- Fastest performance for temporary data
+- Good for high-traffic applications
+- Limited querying capabilities
 
-## Environment Configuration
+### File Driver
+- Good for development and debugging
+- Human-readable storage format
+- No database dependencies
 
-Use environment variables for easy deployment:
+## Captured Data Structure
 
-```env
-# Enable/disable tracking
-REQUEST_TRACKER_ENABLED=true
-
-# Default storage driver
-REQUEST_TRACKER_DRIVER=database
-
-# Database settings
-REQUEST_TRACKER_DB_CONNECTION=mysql
-
-# Performance settings
-REQUEST_TRACKER_SAMPLING_RATE=1.0
-REQUEST_TRACKER_USE_QUEUE=false
-
-# Cache settings
-REQUEST_TRACKER_CACHE_STORE=redis
-```
-
-## Use Cases
-
-### API Debugging
+Each tracked request includes:
 
 ```php
-// Find all failed API requests
-$errors = RequestTracker::get(['path' => 'api/*', 'status' => 500]);
-
-// Track specific user's requests
-$userRequests = RequestTracker::get(['user_id' => 12345]);
+[
+    'id' => 'uuid',
+    'method' => 'POST',
+    'url' => 'https://app.com/api/users',
+    'path' => 'api/users',
+    'headers' => ['accept' => ['application/json']],
+    'payload' => ['name' => 'John', 'email' => 'john@example.com'],
+    'ip' => '192.168.1.1',
+    'user_agent' => 'Mozilla/5.0...',
+    'user_id' => 123,
+    'timestamp' => '2024-01-15T10:30:00Z',
+    'execution_time' => 0.250,
+    'response_status' => 201,
+    'response_body' => ['id' => 456, 'name' => 'John'],
+]
 ```
 
-### Security Monitoring
+## Performance Tips
 
-```php
-// Monitor authentication attempts
-Event::listen(RequestCaptured::class, function ($event) {
-    if ($event->request->routeIs('auth.*')) {
-        $event->request->attributes->set('auth_attempt', true);
-        $event->request->attributes->set('login_method', $event->request->input('method'));
-    }
-});
-```
-
-### Performance Analysis
-
-```php
-// Find slow requests
-$slowRequests = collect(RequestTracker::get())
-    ->filter(fn($req) => $req->execution_time > 2.0);
-
-// Track API endpoint usage
-$apiStats = collect(RequestTracker::get(['path' => 'api/*']))
-    ->groupBy('path')
-    ->map(fn($requests) => $requests->count());
-```
-
-### Compliance Logging
-
-```php
-// Track all data access
-Event::listen(RequestCaptured::class, function ($event) {
-    if ($event->request->routeIs('admin.*') || $event->request->routeIs('api.users.*')) {
-        $event->request->attributes->set('data_access', true);
-        $event->request->attributes->set('admin_user', $event->request->user()?->email);
-    }
-});
-```
-
-## Testing
-
-Disable tracking in tests:
-
-```php
-// In phpunit.xml
-<env name="REQUEST_TRACKER_ENABLED" value="false"/>
-```
-
-Or exclude test environment:
-
-```php
-// config/request-tracker.php
-'excluded_environments' => ['testing'],
-```
-
-## Requirements
-
-- **PHP:** 8.1 or higher
-- **Laravel:** 10.0 or 11.0
-- **Storage:** Database, Cache, or File system access
+- Use `sampling_rate` < 1.0 for high-traffic applications
+- Enable `use_queue` for heavy workloads  
+- Configure appropriate size limits for payloads and responses
+- Use `excluded_paths` to skip unnecessary routes
+- Set proper `retention_days` for automatic cleanup
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
-
-## Contributing
-
-Contributions are welcome! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-## Support
-
-- **Issues:** [GitHub Issues](https://github.com/vildanbina/hookshot/issues)
-- **Documentation:** [GitHub Wiki](https://github.com/vildanbina/hookshot/wiki)
-- **Email:** [vildanbina@gmail.com](mailto:vildanbina@gmail.com)
+MIT

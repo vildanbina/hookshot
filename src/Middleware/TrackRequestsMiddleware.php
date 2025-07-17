@@ -32,10 +32,10 @@ class TrackRequestsMiddleware
         private readonly RequestTrackerContract $tracker,
         private readonly Config $config
     ) {
-        $requestTrackerConfig = $this->config->get('request-tracker', []);
-        $this->filter = new RequestFilter($requestTrackerConfig);
-        $this->responseCapture = new ResponseCapture($requestTrackerConfig);
-        $this->dataExtractor = new DataExtractor($requestTrackerConfig);
+        $hookshotConfig = $this->config->get('hookshot', []);
+        $this->filter = new RequestFilter($hookshotConfig);
+        $this->responseCapture = new ResponseCapture($hookshotConfig);
+        $this->dataExtractor = new DataExtractor($hookshotConfig);
     }
 
     /**
@@ -47,8 +47,8 @@ class TrackRequestsMiddleware
             return $next($request);
         }
 
-        $request->attributes->set('_request_tracker_start', microtime(true));
-        $request->attributes->set('_request_tracker_data', RequestData::fromRequest($request, $this->dataExtractor));
+        $request->attributes->set('_hookshot_start', microtime(true));
+        $request->attributes->set('_hookshot_data', RequestData::fromRequest($request, $this->dataExtractor));
 
         return $next($request);
     }
@@ -58,8 +58,8 @@ class TrackRequestsMiddleware
      */
     public function terminate(Request $request, Response $response): void
     {
-        $startTime = $request->attributes->get('_request_tracker_start');
-        $requestData = $request->attributes->get('_request_tracker_data');
+        $startTime = $request->attributes->get('_hookshot_start');
+        $requestData = $request->attributes->get('_hookshot_data');
 
         if (! $startTime || ! $requestData) {
             return;
@@ -89,7 +89,7 @@ class TrackRequestsMiddleware
      */
     private function store(RequestData $requestData): void
     {
-        if ($this->config->get('request-tracker.use_queue', false)) {
+        if ($this->config->get('hookshot.use_queue', false)) {
             StoreRequestDataJob::dispatch($requestData->toArray());
 
             return;

@@ -21,7 +21,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
      */
     public function getDefaultDriver(): string
     {
-        return $this->config->get('request-tracker.default', 'database');
+        return $this->config->get('hookshot.default', 'database');
     }
 
     /**
@@ -41,13 +41,35 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Get multiple requests with optional filters and limit.
-     *
-     * @param  array<string, mixed>  $filters
+     * Get stored requests with basic ordering and limit.
      */
-    public function get(array $filters = [], int $limit = 100): Collection
+    public function get(int $limit = 100): Collection
     {
-        return $this->driver()->get($filters, $limit);
+        return $this->driver()->get($limit);
+    }
+
+    /**
+     * Get query builder for advanced filtering (database driver only).
+     * For other drivers, use collection() method.
+     *
+     * @return \Illuminate\Database\Query\Builder|null
+     */
+    public function query()
+    {
+        $driver = $this->driver();
+
+        return method_exists($driver, 'query') ? $driver->query() : null;
+    }
+
+    /**
+     * Get collection for advanced filtering (cache/file drivers).
+     * For database driver, use query() method.
+     */
+    public function collection(): ?Collection
+    {
+        $driver = $this->driver();
+
+        return method_exists($driver, 'collection') ? $driver->collection() : null;
     }
 
     /**
@@ -83,7 +105,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     {
         return new DatabaseDriver(
             $this->container->make('db'),
-            $this->config->get('request-tracker.drivers.database', [])
+            $this->config->get('hookshot.drivers.database', [])
         );
     }
 
@@ -94,7 +116,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     {
         return new CacheDriver(
             $this->container->make('cache'),
-            $this->config->get('request-tracker.drivers.cache', [])
+            $this->config->get('hookshot.drivers.cache', [])
         );
     }
 
@@ -104,7 +126,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     protected function createFileDriver(): StorageDriverContract
     {
         return new FileDriver(
-            $this->config->get('request-tracker.drivers.file', [])
+            $this->config->get('hookshot.drivers.file', [])
         );
     }
 
