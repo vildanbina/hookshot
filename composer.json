@@ -20,7 +20,9 @@
         "pestphp/pest": "^2.0",
         "orchestra/testbench": "^8.0|^9.0|^10.0",
         "pestphp/pest-plugin-laravel": "^2.0",
-        "laravel/pint": "^1.18"
+        "laravel/pint": "^1.18",
+        "phpstan/phpstan": "^1.10",
+        "larastan/larastan": "^2.9"
     },
     "autoload": {
         "psr-4": {
@@ -44,6 +46,11 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
+    "scripts": {
+        "phpstan": "phpstan analyse",
+        "test": "pest",
+        "pint": "pint"
+    },
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true

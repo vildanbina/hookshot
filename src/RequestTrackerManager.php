@@ -82,7 +82,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     protected function createDatabaseDriver(): StorageDriverContract
     {
         return new DatabaseDriver(
-            $this->container['db'],
+            $this->container->make('db'),
             $this->config->get('request-tracker.drivers.database', [])
         );
     }
@@ -93,7 +93,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     protected function createCacheDriver(): StorageDriverContract
     {
         return new CacheDriver(
-            $this->container['cache'],
+            $this->container->make('cache'),
             $this->config->get('request-tracker.drivers.cache', [])
         );
     }

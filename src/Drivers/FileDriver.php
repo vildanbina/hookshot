@@ -63,7 +63,7 @@ class FileDriver implements StorageDriverContract
         $pattern = $this->storagePath.'/*/'.$id.'.*';
         $files = glob($pattern);
 
-        if (empty($files)) {
+        if ($files === false || empty($files)) {
             return null;
         }
 
@@ -97,6 +97,10 @@ class FileDriver implements StorageDriverContract
     {
         $pattern = $this->storagePath.'/*/'.$id.'.*';
         $files = glob($pattern);
+
+        if ($files === false) {
+            return false;
+        }
 
         $deleted = false;
         foreach ($files as $file) {
@@ -161,7 +165,7 @@ class FileDriver implements StorageDriverContract
     {
         return match ($this->format) {
             'raw' => $this->formatRawContent($requestData),
-            default => json_encode($requestData->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+            default => json_encode($requestData->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}',
         };
     }
 

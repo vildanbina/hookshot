@@ -6,6 +6,8 @@ namespace VildanBina\HookShot\Drivers;
 
 use Exception;
 use Illuminate\Cache\CacheManager;
+use Illuminate\Contracts\Cache\Repository;
+use Illuminate\Contracts\Cache\Store;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use VildanBina\HookShot\Contracts\StorageDriverContract;
@@ -76,6 +78,7 @@ class CacheDriver implements StorageDriverContract
     {
         try {
             $indexKey = $this->getIndexKey();
+            /** @var array<int, array{id: string, timestamp: string}> $index */
             $index = $this->getStore()->get($indexKey, []);
 
             return collect($index)
@@ -169,7 +172,7 @@ class CacheDriver implements StorageDriverContract
     /**
      * Get cache store instance.
      */
-    private function getStore()
+    private function getStore(): Repository|Store
     {
         $store = $this->config['store'] ?? null;
 
@@ -229,7 +232,7 @@ class CacheDriver implements StorageDriverContract
         // Keep index size manageable
         $maxIndexSize = $this->config['max_index_size'] ?? 10000;
         if (count($index) > $maxIndexSize) {
-            $index = array_slice($index, -$maxIndexSize);
+            $index = array_slice($index, -(int) $maxIndexSize);
         }
 
         $this->getStore()->put($indexKey, $index, $this->getTtl());

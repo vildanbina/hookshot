@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace VildanBina\HookShot\Drivers;
 
 use Exception;
+use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -63,7 +64,7 @@ class DatabaseDriver implements StorageDriverContract
             ->where('id', $id)
             ->first();
 
-        return $record ? $this->mapToRequestData($record) : null;
+        return $record ? $this->mapToRequestData((array) $record) : null;
     }
 
     /**
@@ -79,7 +80,7 @@ class DatabaseDriver implements StorageDriverContract
             ->limit($limit)
             ->get();
 
-        return $records->map(fn ($record) => $this->mapToRequestData($record));
+        return $records->map(fn ($record) => $this->mapToRequestData((array) $record));
     }
 
     /**
@@ -144,7 +145,7 @@ class DatabaseDriver implements StorageDriverContract
     /**
      * Get the database connection.
      */
-    private function getConnection()
+    private function getConnection(): Connection
     {
         $connection = $this->config['connection'] ?? null;
 
@@ -161,26 +162,28 @@ class DatabaseDriver implements StorageDriverContract
 
     /**
      * Map database record to RequestData object.
+     *
+     * @param  array<string, mixed>  $record  Database record as array
      */
-    private function mapToRequestData(object $record): RequestData
+    private function mapToRequestData(array $record): RequestData
     {
         return RequestData::fromArray([
-            'id' => $record->id,
-            'method' => $record->method,
-            'url' => $record->url,
-            'path' => $record->path,
-            'headers' => json_decode($record->headers, true) ?? [],
-            'query' => json_decode($record->query, true) ?? [],
-            'payload' => json_decode($record->payload, true),
-            'ip' => $record->ip,
-            'user_agent' => $record->user_agent,
-            'user_id' => $record->user_id,
-            'metadata' => json_decode($record->metadata, true) ?? [],
-            'timestamp' => $record->timestamp,
-            'execution_time' => (float) $record->execution_time,
-            'response_status' => $record->response_status,
-            'response_headers' => json_decode($record->response_headers, true) ?? [],
-            'response_body' => json_decode($record->response_body, true),
+            'id' => $record['id'],
+            'method' => $record['method'],
+            'url' => $record['url'],
+            'path' => $record['path'],
+            'headers' => json_decode($record['headers'], true) ?? [],
+            'query' => json_decode($record['query'], true) ?? [],
+            'payload' => json_decode($record['payload'], true),
+            'ip' => $record['ip'],
+            'user_agent' => $record['user_agent'],
+            'user_id' => $record['user_id'],
+            'metadata' => json_decode($record['metadata'], true) ?? [],
+            'timestamp' => $record['timestamp'],
+            'execution_time' => (float) $record['execution_time'],
+            'response_status' => $record['response_status'],
+            'response_headers' => json_decode($record['response_headers'], true) ?? [],
+            'response_body' => json_decode($record['response_body'], true),
         ]);
     }
 }

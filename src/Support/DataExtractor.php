@@ -105,7 +105,7 @@ class DataExtractor
     private function limitPayloadSize(mixed $payload): mixed
     {
         $maxSize = $this->config['max_payload_size'] ?? 65536;
-        $serialized = json_encode($payload);
+        $serialized = json_encode($payload) ?: '{}';
 
         if (mb_strlen($serialized) <= $maxSize) {
             return $payload;

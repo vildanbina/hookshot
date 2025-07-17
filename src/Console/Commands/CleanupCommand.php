@@ -42,8 +42,8 @@ class CleanupCommand extends Command
      */
     public function handle(): int
     {
-        $dryRun = $this->option('dry-run');
-        $driver = $this->option('driver');
+        $dryRun = (bool) $this->option('dry-run');
+        $driver = is_string($this->option('driver')) ? $this->option('driver') : null;
 
         $this->info('Starting request tracker cleanup...');
 

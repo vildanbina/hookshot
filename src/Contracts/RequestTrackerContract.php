@@ -42,5 +42,5 @@ interface RequestTrackerContract
     /**
      * Get a driver instance.
      */
-    public function driver(?string $driver = null);
+    public function driver(?string $driver = null): StorageDriverContract;
 }

@@ -52,23 +52,13 @@ class ResponseCapture
         $content = $response->getContent();
 
         if ($this->isJsonResponse($response)) {
-            $decoded = json_decode($content, true);
+            $decoded = json_decode($content ?: '', true);
             $data = $decoded !== null ? $decoded : $content;
 
             return $this->limitContentSize($data, true);
         }
 
         return $this->limitContentSize($content);
-    }
-
-    /**
-     * Check if response body should be captured.
-     */
-    private function shouldCaptureBody(SymfonyResponse $response): bool
-    {
-        return $this->isAllowedContentType($response)
-            && $this->isAllowedSize($response)
-            && $this->isImportantStatus($response);
     }
 
     /**
@@ -85,17 +75,6 @@ class ResponseCapture
         }
 
         return true;
-    }
-
-    /**
-     * Check if response size is within limits.
-     */
-    private function isAllowedSize(SymfonyResponse $response): bool
-    {
-        $contentLength = $response->headers->get('content-length');
-        $maxSize = $this->config['max_response_size'] ?? 10240;
-
-        return ! $contentLength || (int) $contentLength <= $maxSize;
     }
 
     /**
@@ -126,7 +105,7 @@ class ResponseCapture
         $maxSize = $this->config['max_response_size'] ?? 10240;
 
         if ($isJson) {
-            $serialized = json_encode($content);
+            $serialized = json_encode($content) ?: '{}';
             if (mb_strlen($serialized) <= $maxSize) {
                 return $content;
             }

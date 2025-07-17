@@ -1,0 +1,24 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 7
+    paths:
+        - src
+
+    # Exclude vendor and generated files
+    excludePaths:
+        - vendor
+        - tests/Fixtures
+
+    # Allow mixed types in some Laravel contexts
+    ignoreErrors:
+        # Allow missing generic typehints for now
+        - identifier: missingType.generics
+
+        # Allow missing array typehints for now
+        - identifier: missingType.iterableValue
+
+    # Bootstrap file for Laravel testing environment
+    bootstrapFiles:
+        - vendor/orchestra/testbench-core/laravel/bootstrap/app.php
