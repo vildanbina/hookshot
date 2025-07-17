@@ -274,11 +274,11 @@ Each tracked request includes:
 
 ## Performance Tips
 
-- Use `sampling_rate` < 1.0 for high-traffic applications
-- Enable `use_queue` for heavy workloads  
-- Configure appropriate size limits for payloads and responses
-- Use `excluded_paths` to skip unnecessary routes
-- Set proper `retention_days` for automatic cleanup
+- **High Traffic**: Set `sampling_rate` to 0.1 (10%) or lower for production
+- **Heavy Workloads**: Enable `use_queue` to process tracking asynchronously
+- **Memory Management**: Limit `max_payload_size` and `max_response_size` based on your needs
+- **Reduce Noise**: Use `excluded_paths` for health checks, admin routes, and static assets
+- **Storage Optimization**: Configure `retention_days` for automatic cleanup of old data
 
 ## License
 
