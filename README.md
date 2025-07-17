@@ -88,6 +88,7 @@ return [
             'store' => env('HOOKSHOT_CACHE_STORE'),
             'prefix' => 'hookshot',
             'retention_days' => 7,
+            'max_index_size' => 10000,
         ],
 
         'file' => [
@@ -146,6 +147,59 @@ return [
 
     // Queue request tracking for better performance
     'use_queue' => env('HOOKSHOT_USE_QUEUE', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Security Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configure security-related settings for request tracking to ensure
+    | sensitive data is properly filtered and protected.
+    |
+    */
+
+    // Headers to filter/redact in request and response tracking
+    'sensitive_headers' => [
+        'authorization',
+        'cookie',
+        'set-cookie',
+        'x-api-key',
+        'x-auth-token',
+        'x-csrf-token',
+        'x-xsrf-token',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Response Capture Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configure which responses should be captured and stored for analysis.
+    | These settings help control what response data is worth storing.
+    |
+    */
+
+    // Content types to exclude from response body capture (prefix matching)
+    'excluded_content_types' => [
+        'image/',
+        'video/',
+        'audio/',
+        'application/pdf',
+        'application/zip',
+        'application/octet-stream',
+    ],
+
+    // HTTP status codes that are considered important to capture
+    'important_status_codes' => [
+        200,  // OK
+        201,  // Created  
+        400,  // Bad Request
+        401,  // Unauthorized
+        403,  // Forbidden
+        404,  // Not Found
+        422,  // Unprocessable Entity
+        500,  // Internal Server Error
+    ], 
 ];
 ```
  

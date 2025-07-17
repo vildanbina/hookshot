@@ -11,8 +11,6 @@ use Illuminate\Http\Request;
  */
 class DataExtractor
 {
-    private const SENSITIVE_HEADERS = ['authorization', 'cookie', 'set-cookie', 'x-api-key', 'x-auth-token'];
-
     /**
      * @param  array<string, mixed>  $config
      */
@@ -27,9 +25,10 @@ class DataExtractor
     public function filterHeaders(array $headers): array
     {
         $filtered = [];
+        $sensitiveHeaders = $this->config['sensitive_headers'] ?? [];
 
         foreach ($headers as $key => $value) {
-            if (in_array(mb_strtolower($key), self::SENSITIVE_HEADERS)) {
+            if (in_array(mb_strtolower($key), $sensitiveHeaders)) {
                 $filtered[$key] = ['[FILTERED]'];
             } else {
                 $filtered[$key] = $value;

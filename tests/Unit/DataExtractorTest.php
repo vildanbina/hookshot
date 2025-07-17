@@ -5,7 +5,15 @@ declare(strict_types=1);
 use VildanBina\HookShot\Support\DataExtractor;
 
 it('filters sensitive headers', function () {
-    $extractor = new DataExtractor([]);
+    $extractor = new DataExtractor([
+        'sensitive_headers' => [
+            'authorization',
+            'cookie',
+            'set-cookie',
+            'x-api-key',
+            'x-auth-token',
+        ],
+    ]);
 
     $headers = [
         'accept' => ['application/json'],

@@ -11,15 +11,6 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class ResponseCapture
 {
-    private const EXCLUDED_CONTENT_TYPES = [
-        'image/',
-        'video/',
-        'audio/',
-        'application/pdf',
-        'application/zip',
-        'application/octet-stream',
-    ];
-
     private readonly DataExtractor $dataExtractor;
 
     /**
@@ -67,8 +58,9 @@ class ResponseCapture
     private function isAllowedContentType(SymfonyResponse $response): bool
     {
         $contentType = $response->headers->get('content-type', '');
+        $excludedTypes = $this->config['excluded_content_types'] ?? [];
 
-        foreach (self::EXCLUDED_CONTENT_TYPES as $type) {
+        foreach ($excludedTypes as $type) {
             if (str_starts_with($contentType, $type)) {
                 return false;
             }
@@ -82,7 +74,7 @@ class ResponseCapture
      */
     private function isImportantStatus(SymfonyResponse $response): bool
     {
-        $importantStatuses = [200, 201, 400, 401, 403, 404, 422, 500];
+        $importantStatuses = $this->config['important_status_codes'] ?? [];
 
         return in_array($response->getStatusCode(), $importantStatuses);
     }
