@@ -7,6 +7,9 @@ namespace VildanBina\HookShot\Contracts;
 use Illuminate\Support\Collection;
 use VildanBina\HookShot\Data\RequestData;
 
+/**
+ * Contract for storage drivers that persist request tracking data.
+ */
 interface StorageDriverContract
 {
     /**
@@ -20,7 +23,9 @@ interface StorageDriverContract
     public function find(string $id): ?RequestData;
 
     /**
-     * Get multiple requests with optional filters.
+     * Get multiple requests with optional filtering.
+     *
+     * @param  array<string, mixed>  $filters
      */
     public function get(array $filters = [], int $limit = 100): Collection;
 
@@ -35,7 +40,7 @@ interface StorageDriverContract
     public function cleanup(): int;
 
     /**
-     * Check if the driver is available/configured.
+     * Check if the driver is available and functional.
      */
     public function isAvailable(): bool;
 }

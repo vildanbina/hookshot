@@ -11,8 +11,14 @@ use Illuminate\Support\Collection;
 use VildanBina\HookShot\Contracts\StorageDriverContract;
 use VildanBina\HookShot\Data\RequestData;
 
+/**
+ * Database storage driver for request tracking data.
+ */
 class DatabaseDriver implements StorageDriverContract
 {
+    /**
+     * @param  array<string, mixed>  $config
+     */
     public function __construct(
         private readonly DatabaseManager $database,
         private readonly array $config = []
@@ -26,7 +32,6 @@ class DatabaseDriver implements StorageDriverContract
         try {
             $data = $requestData->toArray();
 
-            // Convert arrays to JSON for database storage
             $data['headers'] = json_encode($data['headers']);
             $data['query'] = json_encode($data['query']);
             $data['payload'] = json_encode($data['payload']);
@@ -63,6 +68,8 @@ class DatabaseDriver implements StorageDriverContract
 
     /**
      * Get multiple requests with basic ordering and limit.
+     *
+     * @param  array<string, mixed>  $filters
      */
     public function get(array $filters = [], int $limit = 100): Collection
     {
@@ -145,7 +152,7 @@ class DatabaseDriver implements StorageDriverContract
     }
 
     /**
-     * Get the table name.
+     * Get the table name for storage.
      */
     private function getTableName(): string
     {
@@ -170,7 +177,7 @@ class DatabaseDriver implements StorageDriverContract
             'user_id' => $record->user_id,
             'metadata' => json_decode($record->metadata, true) ?? [],
             'timestamp' => $record->timestamp,
-            'execution_time' => $record->execution_time,
+            'execution_time' => (float) $record->execution_time,
             'response_status' => $record->response_status,
             'response_headers' => json_decode($record->response_headers, true) ?? [],
             'response_body' => json_decode($record->response_body, true),

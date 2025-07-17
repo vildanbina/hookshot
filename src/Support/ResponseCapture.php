@@ -6,6 +6,9 @@ namespace VildanBina\HookShot\Support;
 
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
+/**
+ * Captures and processes HTTP response data for tracking.
+ */
 class ResponseCapture
 {
     private const EXCLUDED_CONTENT_TYPES = [
@@ -19,16 +22,27 @@ class ResponseCapture
 
     private readonly DataExtractor $dataExtractor;
 
+    /**
+     * @param  array<string, mixed>  $config
+     */
     public function __construct(private readonly array $config)
     {
         $this->dataExtractor = new DataExtractor($config);
     }
 
+    /**
+     * Get filtered response headers.
+     *
+     * @return array<string, array<string>>
+     */
     public function getHeaders(SymfonyResponse $response): array
     {
         return $this->dataExtractor->filterHeaders($response->headers->all());
     }
 
+    /**
+     * Extract response body content if appropriate.
+     */
     public function getBody(SymfonyResponse $response): mixed
     {
         if (! $this->isAllowedContentType($response) || ! $this->isImportantStatus($response)) {
@@ -47,6 +61,9 @@ class ResponseCapture
         return $this->limitContentSize($content);
     }
 
+    /**
+     * Check if response body should be captured.
+     */
     private function shouldCaptureBody(SymfonyResponse $response): bool
     {
         return $this->isAllowedContentType($response)
@@ -54,6 +71,9 @@ class ResponseCapture
             && $this->isImportantStatus($response);
     }
 
+    /**
+     * Check if content type is allowed for capture.
+     */
     private function isAllowedContentType(SymfonyResponse $response): bool
     {
         $contentType = $response->headers->get('content-type', '');
@@ -67,6 +87,9 @@ class ResponseCapture
         return true;
     }
 
+    /**
+     * Check if response size is within limits.
+     */
     private function isAllowedSize(SymfonyResponse $response): bool
     {
         $contentLength = $response->headers->get('content-length');
@@ -75,6 +98,9 @@ class ResponseCapture
         return ! $contentLength || (int) $contentLength <= $maxSize;
     }
 
+    /**
+     * Check if status code is worth capturing.
+     */
     private function isImportantStatus(SymfonyResponse $response): bool
     {
         $importantStatuses = [200, 201, 400, 401, 403, 404, 422, 500];
@@ -82,6 +108,9 @@ class ResponseCapture
         return in_array($response->getStatusCode(), $importantStatuses);
     }
 
+    /**
+     * Check if response is JSON content.
+     */
     private function isJsonResponse(SymfonyResponse $response): bool
     {
         $contentType = $response->headers->get('content-type', '');
@@ -89,6 +118,9 @@ class ResponseCapture
         return str_contains($contentType, 'application/json');
     }
 
+    /**
+     * Limit content size to prevent memory issues.
+     */
     private function limitContentSize(mixed $content, bool $isJson = false): mixed
     {
         $maxSize = $this->config['max_response_size'] ?? 10240;
@@ -106,7 +138,6 @@ class ResponseCapture
             ];
         }
 
-        // String content
         $content = (string) $content;
         if (mb_strlen($content) <= $maxSize) {
             return $content;

@@ -13,14 +13,25 @@ use Illuminate\Queue\SerializesModels;
 use VildanBina\HookShot\Contracts\RequestTrackerContract;
 use VildanBina\HookShot\Data\RequestData;
 
+/**
+ * Queued job for storing request tracking data.
+ */
 class StoreRequestDataJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * Create a new job instance.
+     *
+     * @param  array<string, mixed>  $requestDataArray
+     */
     public function __construct(
         private readonly array $requestDataArray
     ) {}
 
+    /**
+     * Execute the job to store request data.
+     */
     public function handle(RequestTrackerContract $tracker): void
     {
         $requestData = RequestData::fromArray($this->requestDataArray);

@@ -25,6 +25,9 @@ class TrackRequestsMiddleware
 
     private readonly DataExtractor $dataExtractor;
 
+    /**
+     * Initialize the middleware with required dependencies.
+     */
     public function __construct(
         private readonly RequestTrackerContract $tracker,
         private readonly Config $config
@@ -35,6 +38,9 @@ class TrackRequestsMiddleware
         $this->dataExtractor = new DataExtractor($requestTrackerConfig);
     }
 
+    /**
+     * Process the incoming request and start tracking.
+     */
     public function handle(Request $request, Closure $next): Response
     {
         if (! $this->filter->shouldTrack($request)) {
@@ -47,6 +53,9 @@ class TrackRequestsMiddleware
         return $next($request);
     }
 
+    /**
+     * Complete request tracking after response is generated.
+     */
     public function terminate(Request $request, Response $response): void
     {
         $startTime = $request->attributes->get('_request_tracker_start');
@@ -58,7 +67,6 @@ class TrackRequestsMiddleware
 
         $executionTime = microtime(true) - $startTime;
 
-        // Update user ID if it wasn't captured during handle() (when auth wasn't available yet)
         if ($requestData->userId === null && $request->user()) {
             $requestData = $requestData->withUserId($request->user()->getKey());
         }
@@ -76,6 +84,9 @@ class TrackRequestsMiddleware
         $this->store($finalRequestData);
     }
 
+    /**
+     * Store the request data using queue or direct storage.
+     */
     private function store(RequestData $requestData): void
     {
         if ($this->config->get('request-tracker.use_queue', false)) {

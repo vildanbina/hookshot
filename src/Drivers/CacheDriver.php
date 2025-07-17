@@ -11,8 +11,14 @@ use Illuminate\Support\Collection;
 use VildanBina\HookShot\Contracts\StorageDriverContract;
 use VildanBina\HookShot\Data\RequestData;
 
+/**
+ * Cache storage driver for request tracking data.
+ */
 class CacheDriver implements StorageDriverContract
 {
+    /**
+     * @param  array<string, mixed>  $config
+     */
     public function __construct(
         private readonly CacheManager $cache,
         private readonly array $config = []

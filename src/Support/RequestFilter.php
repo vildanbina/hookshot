@@ -6,10 +6,19 @@ namespace VildanBina\HookShot\Support;
 
 use Illuminate\Http\Request;
 
+/**
+ * Determines whether requests should be tracked based on configuration rules.
+ */
 class RequestFilter
 {
+    /**
+     * @param  array<string, mixed>  $config
+     */
     public function __construct(private readonly array $config) {}
 
+    /**
+     * Check if a request should be tracked.
+     */
     public function shouldTrack(Request $request): bool
     {
         return $this->isEnabled()
@@ -18,11 +27,17 @@ class RequestFilter
             && $this->passesSamplingFilter();
     }
 
+    /**
+     * Check if request tracking is globally enabled.
+     */
     private function isEnabled(): bool
     {
         return $this->config['enabled'] ?? true;
     }
 
+    /**
+     * Check if request path is not in excluded paths.
+     */
     private function passesPathFilter(Request $request): bool
     {
         $excludedPaths = $this->config['excluded_paths'] ?? [];
@@ -36,6 +51,9 @@ class RequestFilter
         return true;
     }
 
+    /**
+     * Check if user agent is not in excluded list.
+     */
     private function passesUserAgentFilter(Request $request): bool
     {
         $excludedUserAgents = $this->config['excluded_user_agents'] ?? [];
@@ -50,6 +68,9 @@ class RequestFilter
         return true;
     }
 
+    /**
+     * Check if request passes sampling rate filter.
+     */
     private function passesSamplingFilter(): bool
     {
         $samplingRate = $this->config['sampling_rate'] ?? 1.0;

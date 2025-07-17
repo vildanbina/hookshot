@@ -7,6 +7,9 @@ namespace VildanBina\HookShot\Contracts;
 use Illuminate\Support\Collection;
 use VildanBina\HookShot\Data\RequestData;
 
+/**
+ * Contract for request tracking services.
+ */
 interface RequestTrackerContract
 {
     /**
@@ -21,6 +24,8 @@ interface RequestTrackerContract
 
     /**
      * Retrieve multiple requests with optional filtering.
+     *
+     * @param  array<string, mixed>  $filters
      */
     public function get(array $filters = [], int $limit = 100): Collection;
 

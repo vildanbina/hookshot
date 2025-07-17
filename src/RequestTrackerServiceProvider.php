@@ -14,7 +14,7 @@ use VildanBina\HookShot\Middleware\TrackRequestsMiddleware;
 class RequestTrackerServiceProvider extends ServiceProvider
 {
     /**
-     * Register services.
+     * Register the package services and bindings.
      */
     public function register(): void
     {
@@ -30,17 +30,17 @@ class RequestTrackerServiceProvider extends ServiceProvider
         $this->app->alias(RequestTrackerContract::class, 'request-tracker');
     }
 
+    /**
+     * Bootstrap the package services and middleware.
+     */
     public function boot(Router $router): void
     {
-        // Always register middleware group for manual usage
         $router->middlewareGroup('track-requests', [TrackRequestsMiddleware::class]);
 
-        // Optionally push to global middleware stack (default: true for backward compatibility)
         if (config('request-tracker.auto_track', true)) {
             $this->app->make(Kernel::class)->pushMiddleware(TrackRequestsMiddleware::class);
         }
 
-        // Console-only features
         if ($this->app->runningInConsole()) {
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
             $this->commands([CleanupCommand::class]);
@@ -57,6 +57,8 @@ class RequestTrackerServiceProvider extends ServiceProvider
 
     /**
      * Get the services provided by the provider.
+     *
+     * @return array<string>
      */
     public function provides(): array
     {

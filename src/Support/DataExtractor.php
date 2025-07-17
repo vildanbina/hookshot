@@ -6,12 +6,24 @@ namespace VildanBina\HookShot\Support;
 
 use Illuminate\Http\Request;
 
+/**
+ * Extracts and processes data from HTTP requests for tracking.
+ */
 class DataExtractor
 {
     private const SENSITIVE_HEADERS = ['authorization', 'cookie', 'set-cookie', 'x-api-key', 'x-auth-token'];
 
+    /**
+     * @param  array<string, mixed>  $config
+     */
     public function __construct(private readonly array $config) {}
 
+    /**
+     * Filter sensitive headers from request headers.
+     *
+     * @param  array<string, array<string>>  $headers
+     * @return array<string, array<string>>
+     */
     public function filterHeaders(array $headers): array
     {
         $filtered = [];
@@ -27,6 +39,9 @@ class DataExtractor
         return $filtered;
     }
 
+    /**
+     * Extract and process request payload data.
+     */
     public function extractPayload(Request $request): mixed
     {
         if ($request->isJson()) {
@@ -40,6 +55,11 @@ class DataExtractor
         return $this->limitPayloadSize($payload);
     }
 
+    /**
+     * Extract request metadata and route information.
+     *
+     * @return array<string, mixed>
+     */
     public function extractMetadata(Request $request): array
     {
         return [
@@ -51,6 +71,11 @@ class DataExtractor
         ];
     }
 
+    /**
+     * Extract file upload information instead of file contents.
+     *
+     * @return array<string, mixed>
+     */
     private function extractFileData(Request $request): array
     {
         $data = $request->except(array_keys($request->allFiles()));
@@ -74,6 +99,9 @@ class DataExtractor
         return $data;
     }
 
+    /**
+     * Limit payload size to prevent memory issues.
+     */
     private function limitPayloadSize(mixed $payload): mixed
     {
         $maxSize = $this->config['max_payload_size'] ?? 65536;

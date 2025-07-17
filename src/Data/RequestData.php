@@ -10,6 +10,9 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use VildanBina\HookShot\Support\DataExtractor;
 
+/**
+ * Immutable data object representing a captured HTTP request.
+ */
 class RequestData
 {
     public function __construct(
@@ -31,6 +34,9 @@ class RequestData
         public readonly mixed $responseBody = null
     ) {}
 
+    /**
+     * Create a new instance from an HTTP request.
+     */
     public static function fromRequest(Request $request, ?DataExtractor $extractor = null): self
     {
         if ($extractor === null) {
@@ -53,6 +59,11 @@ class RequestData
         );
     }
 
+    /**
+     * Create a new instance from an array of data.
+     *
+     * @param  array<string, mixed>  $data
+     */
     public static function fromArray(array $data): self
     {
         return new self(
@@ -75,6 +86,11 @@ class RequestData
         );
     }
 
+    /**
+     * Create a new instance with response data added.
+     *
+     * @param  array<string, mixed>  $headers
+     */
     public function withResponse(int $status, array $headers, mixed $body, float $executionTime): self
     {
         return new self(
@@ -97,6 +113,9 @@ class RequestData
         );
     }
 
+    /**
+     * Create a new instance with updated user ID.
+     */
     public function withUserId(?int $userId): self
     {
         return new self(
@@ -119,6 +138,11 @@ class RequestData
         );
     }
 
+    /**
+     * Convert the request data to an associative array.
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return [

@@ -17,7 +17,7 @@ use VildanBina\HookShot\Drivers\FileDriver;
 class RequestTrackerManager extends Manager implements RequestTrackerContract
 {
     /**
-     * Get the default driver name.
+     * Get the default storage driver name from configuration.
      */
     public function getDefaultDriver(): string
     {
@@ -25,7 +25,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Store request data using the configured driver.
+     * Store request data using the active driver.
      */
     public function store(RequestData $requestData): bool
     {
@@ -33,7 +33,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Retrieve request data by ID.
+     * Find and retrieve a specific request by its ID.
      */
     public function find(string $id): ?RequestData
     {
@@ -41,7 +41,9 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Retrieve multiple requests with optional filtering.
+     * Get multiple requests with optional filters and limit.
+     *
+     * @param  array<string, mixed>  $filters
      */
     public function get(array $filters = [], int $limit = 100): Collection
     {
@@ -49,7 +51,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Delete request data by ID.
+     * Delete a specific request by its ID.
      */
     public function delete(string $id): bool
     {
@@ -57,7 +59,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Delete old request data based on retention policy.
+     * Remove old requests based on retention settings.
      */
     public function cleanup(): int
     {
@@ -65,7 +67,9 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Get the current driver instance.
+     * Get a storage driver instance.
+     *
+     * @param  string|null  $driver
      */
     public function driver($driver = null): StorageDriverContract
     {
@@ -73,7 +77,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Create the database driver.
+     * Create a new database storage driver instance.
      */
     protected function createDatabaseDriver(): StorageDriverContract
     {
@@ -84,7 +88,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Create the cache driver.
+     * Create a new cache storage driver instance.
      */
     protected function createCacheDriver(): StorageDriverContract
     {
@@ -95,7 +99,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Create the file driver.
+     * Create a new file storage driver instance.
      */
     protected function createFileDriver(): StorageDriverContract
     {
@@ -105,7 +109,9 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     }
 
     /**
-     * Create a custom driver instance.
+     * Create a custom storage driver from configuration.
+     *
+     * @param  array<string, mixed>  $config
      */
     protected function createCustomDriver(array $config): StorageDriverContract
     {

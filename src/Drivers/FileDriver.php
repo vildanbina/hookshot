@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\File;
 use VildanBina\HookShot\Contracts\StorageDriverContract;
 use VildanBina\HookShot\Data\RequestData;
 
+/**
+ * File system storage driver for request tracking data.
+ */
 class FileDriver implements StorageDriverContract
 {
     private readonly string $storagePath;
@@ -19,6 +22,9 @@ class FileDriver implements StorageDriverContract
 
     private readonly int $retentionDays;
 
+    /**
+     * @param  array<string, mixed>  $config
+     */
     public function __construct(private readonly array $config = [])
     {
         $this->storagePath = $this->config['path'] ?? storage_path('app/request-tracker');

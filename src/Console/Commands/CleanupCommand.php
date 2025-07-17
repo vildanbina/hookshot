@@ -10,6 +10,9 @@ use Illuminate\Contracts\Config\Repository as Config;
 use InvalidArgumentException;
 use VildanBina\HookShot\Contracts\RequestTrackerContract;
 
+/**
+ * Console command for cleaning up old request tracking data.
+ */
 class CleanupCommand extends Command
 {
     /**
@@ -24,6 +27,9 @@ class CleanupCommand extends Command
      */
     protected $description = 'Clean up old request tracking data based on retention policy';
 
+    /**
+     * Create a new command instance.
+     */
     public function __construct(
         private readonly Config $config,
         private readonly RequestTrackerContract $requestTracker,
@@ -31,6 +37,9 @@ class CleanupCommand extends Command
         parent::__construct();
     }
 
+    /**
+     * Execute the console command.
+     */
     public function handle(): int
     {
         $dryRun = $this->option('dry-run');
@@ -39,46 +48,62 @@ class CleanupCommand extends Command
         $this->info('Starting request tracker cleanup...');
 
         if ($dryRun) {
-            $this->warn('DRY RUN: No data will actually be deleted');
+            $this->info('DRY RUN MODE - No data will be deleted');
         }
 
         try {
             if ($driver) {
-                $count = $this->cleanupDriver($driver, $dryRun);
+                $deleted = $this->cleanupSpecificDriver($driver, $dryRun);
             } else {
-                $defaultDriver = $this->config->get('request-tracker.default', 'database');
-                $this->line("Using default driver: {$defaultDriver}");
-                $count = $this->cleanupDriver($defaultDriver, $dryRun);
+                $deleted = $this->cleanupDefaultDriver($dryRun);
             }
 
-            $this->info("Cleanup completed: {$count} records processed");
+            if ($dryRun) {
+                $this->info("Would delete {$deleted} old request records");
+            } else {
+                $this->info("Successfully deleted {$deleted} old request records");
+            }
 
-            return self::SUCCESS;
-        } catch (InvalidArgumentException $e) {
-            $this->error($e->getMessage());
-
-            return self::FAILURE;
+            return Command::SUCCESS;
         } catch (Exception $e) {
             $this->error("Cleanup failed: {$e->getMessage()}");
 
-            return self::FAILURE;
+            return Command::FAILURE;
         }
     }
 
-    private function cleanupDriver(string $driver, bool $dryRun): int
+    /**
+     * Clean up using a specific storage driver.
+     */
+    private function cleanupSpecificDriver(string $driver, bool $dryRun): int
     {
-        $drivers = $this->config->get('request-tracker.drivers', []);
+        $availableDrivers = array_keys($this->config->get('request-tracker.drivers', []));
 
-        if (! isset($drivers[$driver])) {
+        if (! in_array($driver, $availableDrivers)) {
             throw new InvalidArgumentException("Driver '{$driver}' is not configured");
         }
 
-        if ($dryRun) {
-            $this->line("Would cleanup driver: {$driver}");
+        $this->info("Using driver: {$driver}");
 
+        if ($dryRun) {
             return 0;
         }
 
         return $this->requestTracker->driver($driver)->cleanup();
+    }
+
+    /**
+     * Clean up using the default configured driver.
+     */
+    private function cleanupDefaultDriver(bool $dryRun): int
+    {
+        $defaultDriver = $this->config->get('request-tracker.default', 'database');
+        $this->info("Using default driver: {$defaultDriver}");
+
+        if ($dryRun) {
+            return 0;
+        }
+
+        return $this->requestTracker->cleanup();
     }
 }

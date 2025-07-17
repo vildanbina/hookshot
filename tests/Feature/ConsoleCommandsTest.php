@@ -41,7 +41,7 @@ it('supports dry run mode', function () {
     RequestTracker::store($oldRequest);
 
     $this->artisan('request-tracker:cleanup --dry-run')
-        ->expectsOutput('DRY RUN: No data will actually be deleted')
+        ->expectsOutput('DRY RUN MODE - No data will be deleted')
         ->assertExitCode(0);
 
     // Nothing should be deleted in dry run
@@ -69,7 +69,7 @@ it('cleans up specific driver only', function () {
 
 it('handles invalid driver gracefully', function () {
     $this->artisan('request-tracker:cleanup --driver=invalid')
-        ->expectsOutput('Driver \'invalid\' is not configured')
+        ->expectsOutput("Cleanup failed: Driver 'invalid' is not configured")
         ->assertExitCode(1);
 });
 

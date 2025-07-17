@@ -10,6 +10,8 @@ use VildanBina\HookShot\Contracts\RequestTrackerContract;
 use VildanBina\HookShot\Data\RequestData;
 
 /**
+ * Facade for the request tracker service.
+ *
  * @method static bool store(RequestData $requestData)
  * @method static RequestData|null find(string $id)
  * @method static Collection get(array $filters = [], int $limit = 100)
