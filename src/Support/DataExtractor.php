@@ -105,16 +105,20 @@ class DataExtractor
     private function limitPayloadSize(mixed $payload): mixed
     {
         $maxSize = $this->config['max_payload_size'] ?? 65536;
-        $serialized = json_encode($payload) ?: '{}';
+        $serialized = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}';
+        $byteSize = mb_strlen($serialized);
 
-        if (mb_strlen($serialized) <= $maxSize) {
+        if ($byteSize <= $maxSize) {
             return $payload;
         }
 
+        $truncated = mb_substr($serialized, 0, $maxSize - 100);
+        $decoded = json_decode($truncated, true);
+
         return [
             '_truncated' => true,
-            '_original_size' => mb_strlen($serialized),
-            '_data' => json_decode(mb_substr($serialized, 0, $maxSize - 100), true) ?? mb_substr($serialized, 0, $maxSize - 100),
+            '_original_size' => $byteSize,
+            '_data' => $decoded ?? $truncated,
         ];
     }
 }

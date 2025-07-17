@@ -105,26 +105,33 @@ class ResponseCapture
         $maxSize = $this->config['max_response_size'] ?? 10240;
 
         if ($isJson) {
-            $serialized = json_encode($content) ?: '{}';
-            if (mb_strlen($serialized) <= $maxSize) {
+            $serialized = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}';
+            $byteSize = mb_strlen($serialized);
+
+            if ($byteSize <= $maxSize) {
                 return $content;
             }
 
+            $truncated = mb_substr($serialized, 0, $maxSize - 100);
+            $decoded = json_decode($truncated, true);
+
             return [
                 '_truncated' => true,
-                '_original_size' => mb_strlen($serialized),
-                '_data' => json_decode(mb_substr($serialized, 0, $maxSize - 100), true) ?? mb_substr($serialized, 0, $maxSize - 100),
+                '_original_size' => $byteSize,
+                '_data' => $decoded ?? $truncated,
             ];
         }
 
         $content = (string) $content;
-        if (mb_strlen($content) <= $maxSize) {
+        $byteSize = mb_strlen($content);
+
+        if ($byteSize <= $maxSize) {
             return $content;
         }
 
         return [
             '_truncated' => true,
-            '_original_size' => mb_strlen($content),
+            '_original_size' => $byteSize,
             '_data' => mb_substr($content, 0, $maxSize - 100),
         ];
     }
