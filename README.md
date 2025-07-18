@@ -50,6 +50,71 @@ Run migrations for database storage:
 php artisan migrate
 ```
 
+
+## Usage
+
+### Middleware Registration
+
+**Manual Registration (Recommended)**
+
+Apply to specific routes:
+
+```php
+Route::middleware('track-requests')->group(function () {
+    Route::get('/api/users', [UserController::class, 'index']);
+    Route::post('/api/users', [UserController::class, 'store']);
+});
+```
+
+**Global Registration (Laravel 11+)**
+
+Add to `bootstrap/app.php`:
+
+```php
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->append(\VildanBina\HookShot\Middleware\TrackRequestsMiddleware::class);
+})
+```
+
+### Retrieving Tracked Data
+
+```php
+use VildanBina\HookShot\Facades\RequestTracker;
+
+// Get all recent requests
+$requests = RequestTracker::get(50);
+
+// Find specific request by ID
+$request = RequestTracker::find('uuid-here');
+
+// Get requests with database driver (supports advanced queries)
+$slowRequests = RequestTracker::query()
+    ->where('execution_time', '>', 2.0)
+    ->where('response_status', '>=', 400)
+    ->get();
+
+// Filter by date range
+$todayRequests = RequestTracker::query()
+    ->whereDate('timestamp', today())
+    ->get();
+```
+
+### Event Integration
+
+Listen to request capture events:
+
+```php
+use VildanBina\HookShot\Events\RequestCaptured;
+use Illuminate\Support\Facades\Event;
+
+Event::listen(RequestCaptured::class, function (RequestCaptured $event) {
+    $request = $event->request;
+    $requestData = $event->requestData;
+    
+    // Do something with the request and request data
+});
+```
+
 ## Features
 
 **Storage Drivers:**
@@ -238,70 +303,6 @@ return [
         500,  // Internal Server Error
     ], 
 ];
-```
-
-## Usage
-
-### Middleware Registration
-
-**Manual Registration (Recommended)**
-
-Apply to specific routes:
-
-```php
-Route::middleware('track-requests')->group(function () {
-    Route::get('/api/users', [UserController::class, 'index']);
-    Route::post('/api/users', [UserController::class, 'store']);
-});
-```
-
-**Global Registration (Laravel 11+)**
-
-Add to `bootstrap/app.php`:
-
-```php
-->withMiddleware(function (Middleware $middleware) {
-    $middleware->append(\VildanBina\HookShot\Middleware\TrackRequestsMiddleware::class);
-})
-```
-
-### Retrieving Tracked Data
-
-```php
-use VildanBina\HookShot\Facades\RequestTracker;
-
-// Get all recent requests
-$requests = RequestTracker::get(50);
-
-// Find specific request by ID
-$request = RequestTracker::find('uuid-here');
-
-// Get requests with database driver (supports advanced queries)
-$slowRequests = RequestTracker::query()
-    ->where('execution_time', '>', 2.0)
-    ->where('response_status', '>=', 400)
-    ->get();
-
-// Filter by date range
-$todayRequests = RequestTracker::query()
-    ->whereDate('timestamp', today())
-    ->get();
-```
-
-### Event Integration
-
-Listen to request capture events:
-
-```php
-use VildanBina\HookShot\Events\RequestCaptured;
-use Illuminate\Support\Facades\Event;
-
-Event::listen(RequestCaptured::class, function (RequestCaptured $event) {
-    $request = $event->request;
-    $requestData = $event->requestData;
-    
-    // Do something with the request and request data
-});
 ```
 
 ## Commands
