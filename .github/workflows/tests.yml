@@ -1,0 +1,47 @@
+name: Tests
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+
+jobs:
+    tests:
+        runs-on: ubuntu-latest
+
+        strategy:
+            fail-fast: false
+            matrix:
+                php: [8.2, 8.3, 8.4]
+                laravel: [10.*, 11.*, 12.*]
+                exclude:
+                    - php: 8.4
+                      laravel: 10.*
+
+        name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
+                  coverage: none
+
+            - name: Install dependencies
+              run: |
+                  composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
+                  composer update --prefer-dist --no-interaction
+
+            - name: Run code style check
+              run: vendor/bin/pint --test --parallel
+
+            - name: Run static analysis
+              run: vendor/bin/phpstan analyse
+
+            - name: Run tests
+              run: vendor/bin/pest --parallel

@@ -1,5 +1,6 @@
 # HookShot
 
+[![Tests](https://github.com/vildanbina/hookshot/actions/workflows/tests.yml/badge.svg)](https://github.com/vildanbina/hookshot/actions/workflows/tests.yml)
 [![Latest Stable Version](https://poser.pugx.org/vildanbina/hookshot/v/stable)](https://packagist.org/packages/vildanbina/hookshot)
 [![Total Downloads](https://poser.pugx.org/vildanbina/hookshot/downloads)](https://packagist.org/packages/vildanbina/hookshot)
 [![License](https://poser.pugx.org/vildanbina/hookshot/license)](https://packagist.org/packages/vildanbina/hookshot)
