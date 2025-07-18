@@ -116,7 +116,7 @@ it('skips response headers when disabled via configuration', function () {
     $requests = RequestTracker::get();
     $request = $requests->first();
 
-    expect($request->responseHeaders)->toBe([]);
+    expect($request->responseHeaders)->toBeNull();
 });
 
 it('skips response body when disabled via configuration', function () {
@@ -129,7 +129,7 @@ it('skips response body when disabled via configuration', function () {
 
     expect($request->responseBody)->toBeNull()
         ->and($request->responseStatus)->toBe(200) // Status should still be captured
-        ->and($request->responseHeaders)->not->toBe([]); // Headers should still be captured
+        ->and($request->responseHeaders)->not->toBeNull(); // Headers should still be captured
 });
 
 it('skips both response headers and body when both disabled', function () {
@@ -143,7 +143,7 @@ it('skips both response headers and body when both disabled', function () {
     $requests = RequestTracker::get();
     $request = $requests->first();
 
-    expect($request->responseHeaders)->toBe([])
+    expect($request->responseHeaders)->toBeNull()
         ->and($request->responseBody)->toBeNull()
         ->and($request->responseStatus)->toBe(200); // Status should still be captured
 });

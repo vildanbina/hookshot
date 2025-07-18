@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use VildanBina\HookShot\Contracts\StorageDriverContract;
 use VildanBina\HookShot\Data\RequestData;
+use VildanBina\HookShot\Support\DataExtractor;
 
 /**
  * Database storage driver for request tracking data.
@@ -23,6 +24,7 @@ class DatabaseDriver implements StorageDriverContract
      */
     public function __construct(
         private readonly DatabaseManager $database,
+        private readonly DataExtractor $dataExtractor,
         private readonly array $config = []
     ) {}
 
@@ -34,12 +36,12 @@ class DatabaseDriver implements StorageDriverContract
         try {
             $data = $requestData->toArray();
 
-            $data['headers'] = json_encode($data['headers']);
-            $data['query'] = json_encode($data['query']);
-            $data['payload'] = json_encode($data['payload']);
-            $data['metadata'] = json_encode($data['metadata']);
-            $data['response_headers'] = json_encode($data['response_headers']);
-            $data['response_body'] = json_encode($data['response_body']);
+            $data['headers'] = $this->dataExtractor->encodeJson($data['headers']);
+            $data['query'] = $this->dataExtractor->encodeJson($data['query']);
+            $data['payload'] = $this->dataExtractor->encodeJson($data['payload']);
+            $data['metadata'] = $this->dataExtractor->encodeJson($data['metadata']);
+            $data['response_headers'] = $this->dataExtractor->encodeJson($data['response_headers']);
+            $data['response_body'] = $this->dataExtractor->encodeJson($data['response_body']);
             $data['timestamp'] = $requestData->timestamp;
 
             $this->getConnection()->table($this->getTableName())->insert($data);
@@ -178,18 +180,18 @@ class DatabaseDriver implements StorageDriverContract
             'method' => $record['method'],
             'url' => $record['url'],
             'path' => $record['path'],
-            'headers' => json_decode($record['headers'], true) ?? [],
-            'query' => json_decode($record['query'], true) ?? [],
-            'payload' => json_decode($record['payload'], true),
+            'headers' => $this->dataExtractor->decodeJson($record['headers'], []),
+            'query' => $this->dataExtractor->decodeJson($record['query'], []),
+            'payload' => $this->dataExtractor->decodeJson($record['payload'], null),
             'ip' => $record['ip'],
             'user_agent' => $record['user_agent'],
             'user_id' => $record['user_id'],
-            'metadata' => json_decode($record['metadata'], true) ?? [],
+            'metadata' => $this->dataExtractor->decodeJson($record['metadata'], []),
             'timestamp' => $record['timestamp'],
             'execution_time' => (float) $record['execution_time'],
             'response_status' => $record['response_status'],
-            'response_headers' => json_decode($record['response_headers'], true) ?? [],
-            'response_body' => json_decode($record['response_body'], true),
+            'response_headers' => $this->dataExtractor->decodeJson($record['response_headers'], null),
+            'response_body' => $this->dataExtractor->decodeJson($record['response_body'], null),
         ]);
     }
 }

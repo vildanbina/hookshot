@@ -20,12 +20,12 @@ class ResponseCapture
     /**
      * Get filtered response headers.
      *
-     * @return array<string, array<string>>
+     * @return array<string, array<string>>|null
      */
-    public function getHeaders(SymfonyResponse $response): array
+    public function getHeaders(SymfonyResponse $response): ?array
     {
         if (! $this->config->get('hookshot.capture_response_headers', true)) {
-            return [];
+            return null;
         }
 
         return $this->dataExtractor->filterHeaders($response->headers->all());

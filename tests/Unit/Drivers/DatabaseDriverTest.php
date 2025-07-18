@@ -10,10 +10,14 @@ beforeEach(function () {
     // Clean database before each test
     DB::table('hookshot_logs')->truncate();
 
-    $this->driver = new DatabaseDriver(app('db'), [
-        'table' => 'hookshot_logs',
-        'retention_days' => 30,
-    ]);
+    $this->driver = new DatabaseDriver(
+        app('db'),
+        app(VildanBina\HookShot\Support\DataExtractor::class),
+        [
+            'table' => 'hookshot_logs',
+            'retention_days' => 30,
+        ]
+    );
 });
 
 it('stores request data in database', function () {
@@ -79,7 +83,11 @@ it('deletes request data', function () {
 
 it('handles database errors gracefully', function () {
     // Mock a database error by using invalid table
-    $brokenDriver = new DatabaseDriver(app('db'), ['table' => 'non_existent_table']);
+    $brokenDriver = new DatabaseDriver(
+        app('db'),
+        app(VildanBina\HookShot\Support\DataExtractor::class),
+        ['table' => 'non_existent_table']
+    );
     $data = requestData();
     $requestData = RequestData::fromArray($data);
 
@@ -110,4 +118,35 @@ it('cleans up old records', function () {
     expect($deletedCount)->toBe(1);
     expect($this->driver->find('old-request'))->toBeNull();
     expect($this->driver->find('recent-request'))->not->toBeNull();
+});
+
+it('stores empty arrays as null in database', function () {
+    $data = requestData([
+        'headers' => [], // Empty array should become NULL
+        'query' => [],   // Empty array should become NULL
+        'metadata' => [], // Empty array should become NULL
+        'response_headers' => [], // Empty array should become NULL
+        'payload' => ['data' => 'value'], // Non-empty should be preserved
+    ]);
+    $requestData = RequestData::fromArray($data);
+
+    $result = $this->driver->store($requestData);
+    expect($result)->toBeTrue();
+
+    // Check what's actually stored in the database
+    $record = DB::table('hookshot_logs')->where('id', $data['id'])->first();
+
+    expect($record->headers)->toBeNull() // Empty array stored as NULL
+        ->and($record->query)->toBeNull() // Empty array stored as NULL
+        ->and($record->metadata)->toBeNull() // Empty array stored as NULL
+        ->and($record->response_headers)->toBeNull() // Empty array stored as NULL
+        ->and($record->payload)->not->toBeNull(); // Non-empty array preserved
+
+    // Verify retrieval handles NULL correctly
+    $retrieved = $this->driver->find($data['id']);
+    expect($retrieved->headers)->toBe([]) // NULL becomes empty array for headers
+        ->and($retrieved->query)->toBe([]) // NULL becomes empty array for query
+        ->and($retrieved->metadata)->toBe([]) // NULL becomes empty array for metadata
+        ->and($retrieved->responseHeaders)->toBeNull() // NULL stays null for response headers
+        ->and($retrieved->payload)->toBe(['data' => 'value']); // Non-empty preserved
 });

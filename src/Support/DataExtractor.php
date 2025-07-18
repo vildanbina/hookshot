@@ -69,6 +69,37 @@ class DataExtractor
     }
 
     /**
+     * Encode a value for JSON storage, treating null and empty arrays as null.
+     */
+    public function encodeJson(mixed $value): null|string|false
+    {
+        if ($value === null || $value === []) {
+            return null;
+        }
+
+        return json_encode($value);
+    }
+
+    /**
+     * Decode a JSON field, returning appropriate defaults for null values.
+     */
+    public function decodeJson(?string $json, mixed $defaultForNull = null): mixed
+    {
+        if ($json === null) {
+            return $defaultForNull;
+        }
+
+        $decoded = json_decode($json, true);
+
+        // If decoding failed and we expect an array, return default
+        if ($decoded === null && is_array($defaultForNull)) {
+            return $defaultForNull;
+        }
+
+        return $decoded;
+    }
+
+    /**
      * Extract file upload information instead of file contents.
      *
      * @return array<string, mixed>

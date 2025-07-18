@@ -13,6 +13,7 @@ use VildanBina\HookShot\Data\RequestData;
 use VildanBina\HookShot\Drivers\CacheDriver;
 use VildanBina\HookShot\Drivers\DatabaseDriver;
 use VildanBina\HookShot\Drivers\FileDriver;
+use VildanBina\HookShot\Support\DataExtractor;
 
 class RequestTrackerManager extends Manager implements RequestTrackerContract
 {
@@ -105,6 +106,7 @@ class RequestTrackerManager extends Manager implements RequestTrackerContract
     {
         return new DatabaseDriver(
             $this->container->make('db'),
+            $this->container->make(DataExtractor::class),
             $this->config->get('hookshot.drivers.database', [])
         );
     }

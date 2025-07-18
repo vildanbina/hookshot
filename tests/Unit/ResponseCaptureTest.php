@@ -132,7 +132,7 @@ it('skips response headers when disabled via configuration', function () {
 
     $headers = $capture->getHeaders($response);
 
-    expect($headers)->toBe([]); // Empty array when disabled
+    expect($headers)->toBeNull(); // Null when disabled
 });
 
 it('captures response headers when enabled via configuration', function () {

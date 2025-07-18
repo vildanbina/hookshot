@@ -29,7 +29,7 @@ class RequestData
         public readonly Carbon $timestamp,
         public readonly float $executionTime = 0.0,
         public readonly int $responseStatus = 0,
-        public readonly array $responseHeaders = [],
+        public readonly ?array $responseHeaders = [],
         public readonly mixed $responseBody = null
     ) {}
 
@@ -78,7 +78,7 @@ class RequestData
             timestamp: Carbon::parse($data['timestamp']),
             executionTime: $data['execution_time'] ?? 0.0,
             responseStatus: $data['response_status'] ?? 0,
-            responseHeaders: $data['response_headers'] ?? [],
+            responseHeaders: $data['response_headers'],
             responseBody: $data['response_body']
         );
     }
@@ -86,9 +86,9 @@ class RequestData
     /**
      * Create a new instance with response data added.
      *
-     * @param  array<string, mixed>  $headers
+     * @param  array<string, mixed>|null  $headers
      */
-    public function withResponse(int $status, array $headers, mixed $body, float $executionTime): self
+    public function withResponse(int $status, ?array $headers, mixed $body, float $executionTime): self
     {
         return new self(
             $this->id,
