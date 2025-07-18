@@ -21,7 +21,7 @@
         "orchestra/testbench": "^9.0|^10.0",
         "pestphp/pest-plugin-laravel": "^3.0",
         "laravel/pint": "^1.18",
-        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan": "^2.0",
         "larastan/larastan": "^3.0"
     },
     "autoload": {
