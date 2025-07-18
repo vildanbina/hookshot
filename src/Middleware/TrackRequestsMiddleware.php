@@ -43,12 +43,7 @@ class TrackRequestsMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $this->filter->shouldTrack($request)) {
-            return $next($request);
-        }
-
         $request->attributes->set('_hookshot_start', microtime(true));
-        $request->attributes->set('_hookshot_data', RequestData::fromRequest($request, $this->dataExtractor));
 
         return $next($request);
     }
@@ -58,18 +53,18 @@ class TrackRequestsMiddleware
      */
     public function terminate(Request $request, Response $response): void
     {
-        $startTime = $request->attributes->get('_hookshot_start');
-        $requestData = $request->attributes->get('_hookshot_data');
+        if (! $this->filter->shouldTrack($request)) {
+            return;
+        }
 
-        if (! $startTime || ! $requestData) {
+        $requestData = RequestData::fromRequest($request, $this->dataExtractor);
+        $startTime = $request->attributes->get('_hookshot_start');
+
+        if (! $startTime) {
             return;
         }
 
         $executionTime = microtime(true) - $startTime;
-
-        if ($requestData->userId === null && $request->user()) {
-            $requestData = $requestData->withUserId($request->user()->getKey());
-        }
 
         $finalRequestData = $requestData->withResponse(
             status: $response->getStatusCode(),

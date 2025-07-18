@@ -300,10 +300,7 @@ Event::listen(RequestCaptured::class, function (RequestCaptured $event) {
     $request = $event->request;
     $requestData = $event->requestData;
     
-    // Add custom metadata
-    if ($request->user()) {
-        $event->request->attributes->set('user_type', 'premium');
-    }
+    // Do something with the request and request data
 });
 ```
 

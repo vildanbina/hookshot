@@ -114,31 +114,6 @@ class RequestData
     }
 
     /**
-     * Create a new instance with updated user ID.
-     */
-    public function withUserId(?int $userId): self
-    {
-        return new self(
-            $this->id,
-            $this->method,
-            $this->url,
-            $this->path,
-            $this->headers,
-            $this->query,
-            $this->payload,
-            $this->ip,
-            $this->userAgent,
-            $userId,
-            $this->metadata,
-            $this->timestamp,
-            $this->executionTime,
-            $this->responseStatus,
-            $this->responseHeaders,
-            $this->responseBody
-        );
-    }
-
-    /**
      * Convert the request data to an associative array.
      *
      * @return array<string, mixed>
