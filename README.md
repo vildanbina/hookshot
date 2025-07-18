@@ -20,7 +20,7 @@ A Laravel package for capturing and tracking HTTP requests with multiple storage
 ## Requirements
 
 - PHP 8.2+
-- Laravel 10.x, 11.x, 12.x
+- Laravel 11.x, 12.x
 
 ## Installation
 
