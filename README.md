@@ -50,38 +50,6 @@ Run migrations for database storage:
 php artisan migrate
 ```
 
-## Basic Usage
-
-Apply middleware to routes:
-
-```php
-Route::middleware('track-requests')->group(function () {
-    Route::apiResource('users', UserController::class);
-});
-```
-
-Or apply globally to all routes in `bootstrap/app.php` (Laravel 11+):
-
-```php
-->withMiddleware(function (Middleware $middleware): void {
-    $middleware->append(\VildanBina\HookShot\Middleware\TrackRequestsMiddleware::class);
-})
-```
-
-Retrieve tracked data:
-
-```php
-use VildanBina\HookShot\Facades\RequestTracker;
-
-// Get recent requests
-$requests = RequestTracker::get(50);
-
-// Query with filters
-$slowRequests = RequestTracker::query()
-    ->where('execution_time', '>', 2.0)
-    ->get();
-```
-
 ## Features
 
 **Storage Drivers:**
@@ -89,6 +57,7 @@ $slowRequests = RequestTracker::query()
 - Database: Full query support with Eloquent models
 - Cache: In-memory storage with configurable TTL
 - File: JSON or raw format file logging
+- Custom: Implement your own storage driver
 
 **Filtering & Sampling:**
 
