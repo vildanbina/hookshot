@@ -334,6 +334,20 @@ Each tracked request includes:
 - **Reduce Noise**: Use `excluded_paths` for health checks, admin routes, and static assets
 - **Storage Optimization**: Configure `retention_days` for automatic cleanup of old data
 
+## Contributing
+
+See [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
+
+## Security Vulnerabilities
+
+Please e-mail vildanbina@gmail.com to report any security vulnerabilities instead of using the issue tracker.
+
+
+## Credits
+
+- [Vildan Bina](https://github.com/vildanbina)
+- [All Contributors](../../contributors)
+
 ## License
 
-MIT
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
