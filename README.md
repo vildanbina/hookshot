@@ -341,7 +341,7 @@ php artisan hookshot:cleanup --dry-run
 - Human-readable storage format
 - No database dependencies
 
-## Custom Drivers
+### Custom Driver
 
 You can create custom storage drivers to integrate with your own storage systems or services. Custom drivers must implement the `StorageDriverContract`.
 
@@ -410,9 +410,7 @@ Add your custom driver to the configuration file:
 'default' => 'custom',
 
 'drivers' => [
-    'database' => [
-        // ... existing database config
-    ],
+    // other drivers
     
     'custom' => [
         'via' => \App\HookShot\Drivers\CustomApiDriver::class,
