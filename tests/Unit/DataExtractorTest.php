@@ -5,15 +5,15 @@ declare(strict_types=1);
 use VildanBina\HookShot\Support\DataExtractor;
 
 it('filters sensitive headers', function () {
-    $extractor = new DataExtractor([
-        'sensitive_headers' => [
-            'authorization',
-            'cookie',
-            'set-cookie',
-            'x-api-key',
-            'x-auth-token',
-        ],
+    config()->set('hookshot.sensitive_headers', [
+        'authorization',
+        'cookie',
+        'set-cookie',
+        'x-api-key',
+        'x-auth-token',
     ]);
+
+    $extractor = app(DataExtractor::class);
 
     $headers = [
         'accept' => ['application/json'],
@@ -33,7 +33,7 @@ it('filters sensitive headers', function () {
 });
 
 it('extracts JSON payload', function () {
-    $extractor = new DataExtractor([]);
+    $extractor = app(DataExtractor::class);
     $request = mockRequest([
         'content' => json_encode(['name' => 'John', 'email' => 'john@test.com']),
     ]);
@@ -45,7 +45,7 @@ it('extracts JSON payload', function () {
 });
 
 it('extracts form payload', function () {
-    $extractor = new DataExtractor([]);
+    $extractor = app(DataExtractor::class);
     $request = Illuminate\Http\Request::create(
         'https://app.test/form',
         'POST',
@@ -58,7 +58,9 @@ it('extracts form payload', function () {
 });
 
 it('limits payload size', function () {
-    $extractor = new DataExtractor(['max_payload_size' => 50]);
+    config()->set('hookshot.max_payload_size', 50);
+
+    $extractor = app(DataExtractor::class);
     $request = mockRequest([
         'content' => json_encode(['data' => str_repeat('x', 1000)]),
     ]);
@@ -72,7 +74,7 @@ it('limits payload size', function () {
 });
 
 it('extracts file upload metadata', function () {
-    $extractor = new DataExtractor([]);
+    $extractor = app(DataExtractor::class);
     $file = Illuminate\Http\UploadedFile::fake()->create('test.pdf', 100);
 
     $request = Illuminate\Http\Request::create('https://app.test/upload', 'POST');
@@ -87,7 +89,7 @@ it('extracts file upload metadata', function () {
 });
 
 it('extracts request metadata', function () {
-    $extractor = new DataExtractor([]);
+    $extractor = app(DataExtractor::class);
     $request = mockRequest();
     $request->setRouteResolver(fn () => new Illuminate\Routing\Route(['POST'], 'api/users', []));
 

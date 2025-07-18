@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VildanBina\HookShot\Support;
 
+use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Http\Request;
 
 /**
@@ -11,10 +12,7 @@ use Illuminate\Http\Request;
  */
 class DataExtractor
 {
-    /**
-     * @param  array<string, mixed>  $config
-     */
-    public function __construct(private readonly array $config) {}
+    public function __construct(private readonly Config $config) {}
 
     /**
      * Filter sensitive headers from request headers.
@@ -25,7 +23,7 @@ class DataExtractor
     public function filterHeaders(array $headers): array
     {
         $filtered = [];
-        $sensitiveHeaders = $this->config['sensitive_headers'] ?? [];
+        $sensitiveHeaders = $this->config->get('hookshot.sensitive_headers') ?? [];
 
         foreach ($headers as $key => $value) {
             if (in_array(mb_strtolower($key), $sensitiveHeaders)) {
@@ -103,7 +101,7 @@ class DataExtractor
      */
     private function limitPayloadSize(mixed $payload): mixed
     {
-        $maxSize = $this->config['max_payload_size'] ?? 65536;
+        $maxSize = $this->config->get('hookshot.max_payload_size') ?? 65536;
         $serialized = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}';
         $byteSize = mb_strlen($serialized);
 

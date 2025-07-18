@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VildanBina\HookShot\Support;
 
+use Illuminate\Contracts\Config\Repository as Config;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
@@ -11,15 +12,10 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class ResponseCapture
 {
-    private readonly DataExtractor $dataExtractor;
-
-    /**
-     * @param  array<string, mixed>  $config
-     */
-    public function __construct(private readonly array $config)
-    {
-        $this->dataExtractor = new DataExtractor($config);
-    }
+    public function __construct(
+        private readonly Config $config,
+        private readonly DataExtractor $dataExtractor
+    ) {}
 
     /**
      * Get filtered response headers.
@@ -58,7 +54,7 @@ class ResponseCapture
     private function isAllowedContentType(SymfonyResponse $response): bool
     {
         $contentType = $response->headers->get('content-type', '');
-        $excludedTypes = $this->config['excluded_content_types'] ?? [];
+        $excludedTypes = $this->config->get('hookshot.excluded_content_types') ?? [];
 
         foreach ($excludedTypes as $type) {
             if (str_starts_with($contentType, $type)) {
@@ -74,7 +70,7 @@ class ResponseCapture
      */
     private function isImportantStatus(SymfonyResponse $response): bool
     {
-        $importantStatuses = $this->config['important_status_codes'] ?? [];
+        $importantStatuses = $this->config->get('hookshot.important_status_codes') ?? [];
 
         return in_array($response->getStatusCode(), $importantStatuses);
     }
@@ -94,7 +90,7 @@ class ResponseCapture
      */
     private function limitContentSize(mixed $content, bool $isJson = false): mixed
     {
-        $maxSize = $this->config['max_response_size'] ?? 10240;
+        $maxSize = $this->config->get('hookshot.max_response_size') ?? 10240;
 
         if ($isJson) {
             $serialized = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}';

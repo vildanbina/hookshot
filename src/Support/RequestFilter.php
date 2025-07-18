@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VildanBina\HookShot\Support;
 
+use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Http\Request;
 
 /**
@@ -11,10 +12,7 @@ use Illuminate\Http\Request;
  */
 class RequestFilter
 {
-    /**
-     * @param  array<string, mixed>  $config
-     */
-    public function __construct(private readonly array $config) {}
+    public function __construct(private readonly Config $config) {}
 
     /**
      * Check if a request should be tracked.
@@ -32,7 +30,7 @@ class RequestFilter
      */
     private function isEnabled(): bool
     {
-        return $this->config['enabled'] ?? true;
+        return $this->config->get('hookshot.enabled') ?? true;
     }
 
     /**
@@ -40,7 +38,7 @@ class RequestFilter
      */
     private function passesPathFilter(Request $request): bool
     {
-        $excludedPaths = $this->config['excluded_paths'] ?? [];
+        $excludedPaths = $this->config->get('hookshot.excluded_paths') ?? [];
 
         foreach ($excludedPaths as $pattern) {
             if ($request->is($pattern)) {
@@ -56,7 +54,7 @@ class RequestFilter
      */
     private function passesUserAgentFilter(Request $request): bool
     {
-        $excludedUserAgents = $this->config['excluded_user_agents'] ?? [];
+        $excludedUserAgents = $this->config->get('hookshot.excluded_user_agents') ?? [];
         $userAgent = mb_strtolower($request->userAgent() ?? '');
 
         foreach ($excludedUserAgents as $pattern) {
@@ -73,7 +71,7 @@ class RequestFilter
      */
     private function passesSamplingFilter(): bool
     {
-        $samplingRate = $this->config['sampling_rate'] ?? 1.0;
+        $samplingRate = $this->config->get('hookshot.sampling_rate') ?? 1.0;
 
         if ($samplingRate >= 1.0) {
             return true;

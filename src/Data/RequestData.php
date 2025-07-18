@@ -7,7 +7,6 @@ namespace VildanBina\HookShot\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 use VildanBina\HookShot\Support\DataExtractor;
 
 /**
@@ -37,11 +36,9 @@ class RequestData
     /**
      * Create a new instance from an HTTP request.
      */
-    public static function fromRequest(Request $request, ?DataExtractor $extractor = null): self
+    public static function fromRequest(Request $request): self
     {
-        if ($extractor === null) {
-            throw new InvalidArgumentException('DataExtractor is required for fromRequest method');
-        }
+        $extractor = app(DataExtractor::class);
 
         return new self(
             id: Str::uuid()->toString(),

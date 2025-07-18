@@ -13,30 +13,20 @@ use VildanBina\HookShot\Contracts\RequestTrackerContract;
 use VildanBina\HookShot\Data\RequestData;
 use VildanBina\HookShot\Events\RequestCaptured;
 use VildanBina\HookShot\Jobs\StoreRequestDataJob;
-use VildanBina\HookShot\Support\DataExtractor;
 use VildanBina\HookShot\Support\RequestFilter;
 use VildanBina\HookShot\Support\ResponseCapture;
 
 class TrackRequestsMiddleware
 {
-    private readonly RequestFilter $filter;
-
-    private readonly ResponseCapture $responseCapture;
-
-    private readonly DataExtractor $dataExtractor;
-
     /**
      * Initialize the middleware with required dependencies.
      */
     public function __construct(
         private readonly RequestTrackerContract $tracker,
-        private readonly Config $config
-    ) {
-        $hookshotConfig = $this->config->get('hookshot', []);
-        $this->filter = new RequestFilter($hookshotConfig);
-        $this->responseCapture = new ResponseCapture($hookshotConfig);
-        $this->dataExtractor = new DataExtractor($hookshotConfig);
-    }
+        private readonly Config $config,
+        private readonly RequestFilter $filter,
+        private readonly ResponseCapture $responseCapture,
+    ) {}
 
     /**
      * Process the incoming request and start tracking.
@@ -57,7 +47,7 @@ class TrackRequestsMiddleware
             return;
         }
 
-        $requestData = RequestData::fromRequest($request, $this->dataExtractor);
+        $requestData = RequestData::fromRequest($request);
         $startTime = $request->attributes->get('_hookshot_start');
 
         if (! $startTime) {

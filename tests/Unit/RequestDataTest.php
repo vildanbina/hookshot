@@ -19,7 +19,7 @@ it('creates request data from array', function () {
 
 it('creates request data from HTTP request', function () {
     $request = mockRequest();
-    $extractor = new DataExtractor(config('hookshot'));
+    $extractor = app(DataExtractor::class);
 
     $requestData = RequestData::fromRequest($request, $extractor);
 
@@ -29,12 +29,6 @@ it('creates request data from HTTP request', function () {
         ->and($requestData->headers)->toBeArray()
         ->and($requestData->timestamp)->toBeInstanceOf(Carbon::class);
 });
-
-it('requires data extractor when creating from request', function () {
-    $request = mockRequest();
-
-    RequestData::fromRequest($request, null);
-})->throws(InvalidArgumentException::class, 'DataExtractor is required');
 
 it('converts to array format', function () {
     $data = requestData();
