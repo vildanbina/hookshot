@@ -9,7 +9,6 @@ parameters:
     # Exclude vendor and generated files
     excludePaths:
         - vendor
-        - tests/Fixtures
 
     # Allow mixed types in some Laravel contexts
     ignoreErrors:
