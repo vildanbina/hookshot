@@ -48,8 +48,8 @@
     "prefer-stable": true,
     "scripts": {
         "phpstan": "phpstan analyse",
-        "test": "pest",
-        "pint": "pint"
+        "test": "pest --parallel",
+        "pint": "pint --parallel --test"
     },
     "config": {
         "allow-plugins": {

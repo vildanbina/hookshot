@@ -281,6 +281,12 @@ return [
     |
     */
 
+    // Enable or disable response header capture (saves database space)
+    'capture_response_headers' => env('HOOKSHOT_CAPTURE_RESPONSE_HEADERS', true),
+
+    // Enable or disable response body capture (saves significant database space)
+    'capture_response_body' => env('HOOKSHOT_CAPTURE_RESPONSE_BODY', true),
+
     // Content types to exclude from response body capture (prefix matching)
     'excluded_content_types' => [
         'image/',
@@ -452,6 +458,10 @@ Each tracked request includes:
 - **Memory Management**: Limit `max_payload_size` and `max_response_size` based on your needs
 - **Reduce Noise**: Use `excluded_paths` for health checks, admin routes, and static assets
 - **Storage Optimization**: Configure `retention_days` for automatic cleanup of old data
+- **Database Space**: Disable response capture to save significant storage space:
+  - Set `capture_response_headers` to false in order to disable response header capture
+  - Set `capture_response_body` to false in order to disable response body capture
+  - Both can be individually controlled based on your storage and debugging needs
 
 ## Contributing
 

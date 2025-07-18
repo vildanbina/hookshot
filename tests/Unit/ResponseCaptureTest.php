@@ -120,3 +120,56 @@ it('skips response body for redirects', function () {
 
     expect($body)->toBeNull(); // Not an important status
 });
+
+it('skips response headers when disabled via configuration', function () {
+    setTestConfig();
+    config()->set('hookshot.capture_response_headers', false);
+
+    $capture = app(ResponseCapture::class);
+    $response = new Response();
+    $response->headers->set('Content-Type', 'application/json');
+    $response->headers->set('X-Custom-Header', 'value');
+
+    $headers = $capture->getHeaders($response);
+
+    expect($headers)->toBe([]); // Empty array when disabled
+});
+
+it('captures response headers when enabled via configuration', function () {
+    setTestConfig();
+    config()->set('hookshot.capture_response_headers', true);
+
+    $capture = app(ResponseCapture::class);
+    $response = new Response();
+    $response->headers->set('Content-Type', 'application/json');
+
+    $headers = $capture->getHeaders($response);
+
+    expect($headers['content-type'])->toBe(['application/json']);
+});
+
+it('skips response body when disabled via configuration', function () {
+    setTestConfig();
+    config()->set('hookshot.capture_response_body', false);
+
+    $capture = app(ResponseCapture::class);
+    $data = ['id' => 123, 'name' => 'John'];
+    $response = new Response(json_encode($data), 200, ['Content-Type' => 'application/json']);
+
+    $body = $capture->getBody($response);
+
+    expect($body)->toBeNull(); // Null when disabled
+});
+
+it('captures response body when enabled via configuration', function () {
+    setTestConfig();
+    config()->set('hookshot.capture_response_body', true);
+
+    $capture = app(ResponseCapture::class);
+    $data = ['id' => 123, 'name' => 'John'];
+    $response = new Response(json_encode($data), 200, ['Content-Type' => 'application/json']);
+
+    $body = $capture->getBody($response);
+
+    expect($body)->toBe($data);
+});

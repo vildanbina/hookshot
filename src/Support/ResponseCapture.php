@@ -24,6 +24,10 @@ class ResponseCapture
      */
     public function getHeaders(SymfonyResponse $response): array
     {
+        if (! $this->config->get('hookshot.capture_response_headers', true)) {
+            return [];
+        }
+
         return $this->dataExtractor->filterHeaders($response->headers->all());
     }
 
@@ -32,6 +36,10 @@ class ResponseCapture
      */
     public function getBody(SymfonyResponse $response): mixed
     {
+        if (! $this->config->get('hookshot.capture_response_body', true)) {
+            return null;
+        }
+
         if (! $this->isAllowedContentType($response) || ! $this->isImportantStatus($response)) {
             return null;
         }

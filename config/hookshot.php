@@ -131,6 +131,12 @@ return [
     |
     */
 
+    // Enable or disable response header capture
+    'capture_response_headers' => (bool) env('HOOKSHOT_CAPTURE_RESPONSE_HEADERS', true),
+
+    // Enable or disable response body capture
+    'capture_response_body' => (bool) env('HOOKSHOT_CAPTURE_RESPONSE_BODY', true),
+
     // Content types to exclude from response body capture (prefix matching)
     'excluded_content_types' => [
         'image/',

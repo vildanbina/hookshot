@@ -107,3 +107,43 @@ it('captures response data', function () {
         ->and($request->executionTime)->toBeFloat()
         ->and($request->executionTime)->toBeGreaterThan(0);
 });
+
+it('skips response headers when disabled via configuration', function () {
+    config(['hookshot.capture_response_headers' => false]);
+
+    $this->postJson('/api/users', ['name' => 'John']);
+
+    $requests = RequestTracker::get();
+    $request = $requests->first();
+
+    expect($request->responseHeaders)->toBe([]);
+});
+
+it('skips response body when disabled via configuration', function () {
+    config(['hookshot.capture_response_body' => false]);
+
+    $this->postJson('/api/users', ['name' => 'John']);
+
+    $requests = RequestTracker::get();
+    $request = $requests->first();
+
+    expect($request->responseBody)->toBeNull()
+        ->and($request->responseStatus)->toBe(200) // Status should still be captured
+        ->and($request->responseHeaders)->not->toBe([]); // Headers should still be captured
+});
+
+it('skips both response headers and body when both disabled', function () {
+    config([
+        'hookshot.capture_response_headers' => false,
+        'hookshot.capture_response_body' => false,
+    ]);
+
+    $this->postJson('/api/users', ['name' => 'John']);
+
+    $requests = RequestTracker::get();
+    $request = $requests->first();
+
+    expect($request->responseHeaders)->toBe([])
+        ->and($request->responseBody)->toBeNull()
+        ->and($request->responseStatus)->toBe(200); // Status should still be captured
+});
