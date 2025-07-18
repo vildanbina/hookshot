@@ -375,6 +375,89 @@ php artisan hookshot:cleanup --dry-run
 - Human-readable storage format
 - No database dependencies
 
+## Custom Drivers
+
+You can create custom storage drivers to integrate with your own storage systems or services. Custom drivers must implement the `StorageDriverContract`.
+
+### Creating a Custom Driver
+
+```php
+<?php
+
+namespace App\HookShot\Drivers;
+
+use Illuminate\Support\Collection;
+use VildanBina\HookShot\Contracts\StorageDriverContract;
+use VildanBina\HookShot\Data\RequestData;
+
+class CustomApiDriver implements StorageDriverContract
+{
+    public function __construct(array $config = [])
+    {
+        // Initialize your driver with config (API keys, endpoints, etc.)
+    }
+
+    public function store(RequestData $requestData): bool
+    {
+        // Store the request data to your storage system
+        // Return true on success, false on failure
+    }
+
+    public function find(string $id): ?RequestData
+    {
+        // Find and return a specific request by ID
+        // Return null if not found
+    }
+
+    public function get(int $limit = 100): Collection
+    {
+        // Get multiple requests with the given limit
+        // Return Collection of RequestData objects
+    }
+
+    public function delete(string $id): bool
+    {
+        // Delete a specific request by ID
+        // Return true if deleted, false otherwise
+    }
+
+    public function cleanup(): int
+    {
+        // Clean up old requests based on retention policy
+        // Return number of deleted requests
+    }
+
+    public function isAvailable(): bool
+    {
+        // Check if your storage system is available
+        // Return true if operational, false otherwise
+    }
+}
+```
+
+### Configuring Your Custom Driver
+
+Add your custom driver to the configuration file:
+
+```php
+// config/hookshot.php
+'default' => 'custom',
+
+'drivers' => [
+    'database' => [
+        // ... existing database config
+    ],
+    
+    'custom' => [
+        'via' => \App\HookShot\Drivers\CustomApiDriver::class,
+        'endpoint' => env('CUSTOM_ENDPOINT', 'https://api.example.com'),
+        'api_key' => env('CUSTOM_KEY'),
+    ],
+],
+```
+
+The `via` key tells HookShot which class to use for this driver. The entire config array (including the `via` key) is passed to your driver's constructor.
+
 ## Captured Data Structure
 
 Each tracked request includes:
