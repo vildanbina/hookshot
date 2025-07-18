@@ -6,16 +6,24 @@
 [![License](https://poser.pugx.org/vildanbina/hookshot/license)](https://packagist.org/packages/vildanbina/hookshot)
 [![PHP Version Require](https://poser.pugx.org/vildanbina/hookshot/require/php)](https://packagist.org/packages/vildanbina/hookshot)
 
-A Laravel package for capturing and tracking HTTP requests with multiple storage drivers and powerful filtering capabilities.
+A Laravel package for capturing and tracking HTTP requests with configurable storage drivers and filtering options.
 
-## Features
+## Overview
 
-- **Multiple Storage Drivers**: Database, Cache, and File storage options
-- **Smart Filtering**: Exclude paths, user agents, and apply sampling rates
-- **Performance Optimized**: Configurable payload limits and queueing support
-- **Laravel 11+ Compatible**: Modern Laravel applications support
-- **Event-Driven**: Capture and modify request data via events
-- **Security Focused**: Automatic filtering of sensitive headers and data
+HookShot provides middleware-based HTTP request tracking for Laravel applications. It captures request/response data and
+stores it using database, cache, or file storage drivers with configurable filtering and performance controls.
+
+**How it works:** The middleware captures request data during the request lifecycle and stores the complete
+request/response information during Laravel's `terminate` phase, ensuring your application's response time is not
+affected by the logging process.
+
+### Why HookShot?
+- **🔍 Debug Issues** - Reproduce bugs by seeing exactly what requests caused them
+- **📊 Analytics** - Track API usage patterns, popular endpoints, and user behavior
+- **🛡️ Security** - Monitor suspicious requests and track authentication attempts
+- **📋 Compliance** - Meet audit requirements with comprehensive request logging
+- **⚡ Performance** - Identify slow endpoints and optimize request handling
+- **🔌 API Monitoring** - Track external API integrations and webhook deliveries
 
 ## Requirements
 
@@ -24,23 +32,82 @@ A Laravel package for capturing and tracking HTTP requests with multiple storage
 
 ## Installation
 
-Install the package via Composer:
+Install via Composer:
 
 ```bash
 composer require vildanbina/hookshot
 ```
 
-Publish the configuration file:
+Publish configuration:
 
 ```bash
 php artisan vendor:publish --tag=hookshot-config
 ```
 
-Run the migration for database storage:
+Run migrations for database storage:
 
 ```bash
 php artisan migrate
 ```
+
+## Basic Usage
+
+Apply middleware to routes:
+
+```php
+Route::middleware('track-requests')->group(function () {
+    Route::apiResource('users', UserController::class);
+});
+```
+
+Or apply globally to all routes in `bootstrap/app.php` (Laravel 11+):
+
+```php
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->append(\VildanBina\HookShot\Middleware\TrackRequestsMiddleware::class);
+})
+```
+
+Retrieve tracked data:
+
+```php
+use VildanBina\HookShot\Facades\RequestTracker;
+
+// Get recent requests
+$requests = RequestTracker::get(50);
+
+// Query with filters
+$slowRequests = RequestTracker::query()
+    ->where('execution_time', '>', 2.0)
+    ->get();
+```
+
+## Features
+
+**Storage Drivers:**
+
+- Database: Full query support with Eloquent models
+- Cache: In-memory storage with configurable TTL
+- File: JSON or raw format file logging
+
+**Filtering & Sampling:**
+
+- Path exclusion patterns
+- User agent filtering
+- Configurable sampling rates
+- Content-type based exclusions
+
+**Performance Controls:**
+
+- Request/response payload size limits
+- Queue-based processing support
+- Automatic data retention cleanup
+
+**Security:**
+
+- Sensitive header filtering
+- Authentication data redaction
+- Configurable data sanitization
 
 ## Configuration
 
@@ -203,7 +270,7 @@ return [
     ], 
 ];
 ```
- 
+
 ## Usage
 
 ### Middleware Registration
@@ -291,16 +358,19 @@ php artisan hookshot:cleanup --dry-run
 ## Storage Drivers
 
 ### Database Driver
+
 - Best for queryable, persistent data
 - Supports complex filtering and relationships
 - Automatic cleanup via retention settings
 
-### Cache Driver  
+### Cache Driver
+
 - Fastest performance for temporary data
 - Good for high-traffic applications
 - Limited querying capabilities
 
 ### File Driver
+
 - Good for development and debugging
 - Human-readable storage format
 - No database dependencies
@@ -342,7 +412,6 @@ See [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
 ## Security Vulnerabilities
 
 Please e-mail vildanbina@gmail.com to report any security vulnerabilities instead of using the issue tracker.
-
 
 ## Credits
 
